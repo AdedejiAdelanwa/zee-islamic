@@ -156,7 +156,7 @@ export default function SearchBar({
           autoComplete="off"
           spellCheck={false}
           className={cn(
-            "w-full rounded-full border border-(--color-border) bg-white py-3.5 text-base shadow-sm transition-all",
+            "w-full rounded-full border border-(--color-border) bg-white py-3.5 text-base text-black shadow-sm transition-all",
             "placeholder:text-(--color-muted)",
             "focus:border-(--color-primary) focus:outline-none focus:ring-2 focus:ring-primary/20",
             isAr ? "pr-12 pl-24" : "pl-12 pr-24",

@@ -71,7 +71,7 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
                 currentType === type.value
                   ? "bg-(--color-primary) text-white"
-                  : "border border-(--color-border) text-(--color-foreground) hover:border-(--color-primary) hover:text-(--color-primary)"
+                  : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
               )}
             >
               {isAr ? type.labelAr : type.labelEn}
@@ -95,7 +95,7 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
                   "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
                   currentGrades.includes(grade.value)
                     ? "bg-(--color-primary) text-white"
-                    : "border border-(--color-border) text-(--color-foreground) hover:border-(--color-primary) hover:text-(--color-primary)"
+                    : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
                 )}
               >
                 {isAr ? grade.labelAr : grade.labelEn}
@@ -122,7 +122,7 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
               "rounded-full px-3 py-1 text-sm transition-colors",
               currentType === type.value
                 ? "bg-(--color-primary) text-white"
-                : "border border-(--color-border) hover:border-(--color-primary) hover:text-(--color-primary)"
+                : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
             )}
           >
             {isAr ? type.labelAr : type.labelEn}
