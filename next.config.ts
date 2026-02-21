@@ -10,4 +10,9 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  allowedDevOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5000",
+  ],
 })(nextConfig);
