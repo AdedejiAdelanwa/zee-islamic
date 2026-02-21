@@ -133,7 +133,7 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
       {/* Mobile: button + drawer */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-(--color-border) px-3 py-1.5 text-sm font-medium transition-colors hover:bg-(--color-surface) md:hidden"
+        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-(--color-surface) md:hidden"
       >
         <SlidersHorizontal size={16} />
         {isAr ? "تصفية" : "Filters"}

@@ -40,7 +40,7 @@ export default function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-full border border-(--color-border) px-3 py-1.5 text-sm font-medium text-(--color-foreground) transition-colors hover:bg-(--color-surface) hover:text-(--color-primary)"
+        className="flex items-center gap-1.5 rounded-full border border-(--color-border) bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-(--color-surface) hover:text-(--color-primary)"
       >
         <Globe size={15} />
         <span>{current.nativeLabel}</span>

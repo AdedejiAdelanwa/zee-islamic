@@ -133,7 +133,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
                 "rounded-full px-4 py-2 text-sm font-medium transition-colors",
                 source === s.value
                   ? "bg-(--color-primary) text-white"
-                  : "border border-(--color-border) text-(--color-foreground) hover:border-(--color-primary) hover:text-(--color-primary)",
+                  : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)",
               )}
             >
               {isAr ? s.labelAr : s.labelEn}
@@ -166,7 +166,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
-          className="flex items-center gap-1.5 rounded-full border border-(--color-border) px-4 py-2 text-sm font-medium text-(--color-foreground) transition-colors hover:border-(--color-primary) hover:text-(--color-primary) md:hidden"
+          className="flex items-center gap-1.5 rounded-full border border-(--color-border) bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:border-(--color-primary) hover:text-(--color-primary) md:hidden"
         >
           {isAr ? "المجموعات" : "Hadith Collections"}
           {totalSelected > 0 && (
