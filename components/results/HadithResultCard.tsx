@@ -19,7 +19,7 @@ export default function HadithResultCard({
   const href = `/${locale}/hadith/${result.bookSlug}/${result.hadithNumber}`;
 
   return (
-    <article className="group rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group rounded-2xl border border-(--color-border) border-l-[3px] border-l-(--color-semantic-green) bg-(--color-surface) p-5 shadow-sm transition-shadow hover:shadow-md">
       {/* Source + grade */}
       <div className="mb-3 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-(--color-primary)">

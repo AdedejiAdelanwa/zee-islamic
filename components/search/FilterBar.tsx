@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Button from "@/components/ui/Button";
 import FilterDrawer from "./FilterDrawer";
 
 interface FilterBarProps {
@@ -64,18 +64,14 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
         </p>
         <div className="flex flex-wrap gap-2">
           {TYPES.map((type) => (
-            <button
+            <Button
               key={type.value}
+              variant={currentType === type.value ? "primary" : "outline"}
+              size="sm"
               onClick={() => setParam("type", type.value)}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                currentType === type.value
-                  ? "bg-(--color-primary) text-white"
-                  : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
-              )}
             >
               {isAr ? type.labelAr : type.labelEn}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -88,18 +84,14 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
           </p>
           <div className="flex flex-wrap gap-2">
             {GRADES.map((grade) => (
-              <button
+              <Button
                 key={grade.value}
+                variant={currentGrades.includes(grade.value) ? "primary" : "outline"}
+                size="sm"
                 onClick={() => toggleGrade(grade.value)}
-                className={cn(
-                  "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                  currentGrades.includes(grade.value)
-                    ? "bg-(--color-primary) text-white"
-                    : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
-                )}
               >
                 {isAr ? grade.labelAr : grade.labelEn}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -115,25 +107,23 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
           {isAr ? "تصفية:" : "Filter:"}
         </span>
         {TYPES.map((type) => (
-          <button
+          <Button
             key={type.value}
+            variant={currentType === type.value ? "primary" : "outline"}
+            size="sm"
             onClick={() => setParam("type", type.value)}
-            className={cn(
-              "rounded-full px-3 py-1 text-sm transition-colors",
-              currentType === type.value
-                ? "bg-(--color-primary) text-white"
-                : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)"
-            )}
           >
             {isAr ? type.labelAr : type.labelEn}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Mobile: button + drawer */}
-      <button
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => setDrawerOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-(--color-surface) md:hidden"
+        className="md:hidden"
       >
         <SlidersHorizontal size={16} />
         {isAr ? "تصفية" : "Filters"}
@@ -142,7 +132,7 @@ export default function FilterBar({ locale = "en" }: FilterBarProps) {
             {(currentType !== "all" ? 1 : 0) + currentGrades.length}
           </span>
         )}
-      </button>
+      </Button>
 
       <FilterDrawer
         isOpen={drawerOpen}

@@ -10,13 +10,13 @@ function getGradeStyles(grade: string): { label: string; className: string } {
   if (normalized.includes("sahih")) {
     return {
       label: "Sahih",
-      className: "bg-green-100 text-green-800 border-green-200",
+      className: "bg-[#2D7A5F]/10 text-[#2D7A5F] border-[#2D7A5F]/25",
     };
   }
   if (normalized.includes("hasan")) {
     return {
       label: "Hasan",
-      className: "bg-orange-100 text-orange-800 border-orange-200",
+      className: "bg-orange-100 text-orange-700 border-orange-200",
     };
   }
   if (
@@ -26,12 +26,12 @@ function getGradeStyles(grade: string): { label: string; className: string } {
   ) {
     return {
       label: "Da'if",
-      className: "bg-red-100 text-red-800 border-red-200",
+      className: "bg-[#C0392B]/10 text-[#C0392B] border-[#C0392B]/25",
     };
   }
   return {
     label: grade || "Unknown",
-    className: "bg-gray-100 text-gray-700 border-gray-200",
+    className: "bg-gray-100 text-gray-600 border-gray-200",
   };
 }
 

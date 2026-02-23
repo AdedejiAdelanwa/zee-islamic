@@ -80,7 +80,7 @@ export default async function HadithPage({ params }: HadithPageProps) {
 
       {/* Arabic text */}
       {hadith.hadithArabic && (
-        <div className="mb-6 rounded-2xl border border-(--color-border) bg-white p-6 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm">
           <p
             lang="ar"
             dir="rtl"
@@ -104,7 +104,7 @@ export default async function HadithPage({ params }: HadithPageProps) {
       </div>
 
       {/* Grade info */}
-      <div className="mb-6 rounded-2xl border border-(--color-border) bg-white p-5">
+      <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
         <h2 className="mb-3 text-sm font-semibold text-(--color-foreground)">
           {isAr ? "درجة الحديث" : "Hadith Grade"}
         </h2>
@@ -120,7 +120,7 @@ export default async function HadithPage({ params }: HadithPageProps) {
       </div>
 
       {/* Share */}
-      <div className="rounded-2xl border border-(--color-border) bg-white p-5">
+      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
         <h2 className="mb-4 text-sm font-semibold text-(--color-foreground)">
           {isAr ? "مشاركة الحديث" : "Share this Hadith"}
         </h2>

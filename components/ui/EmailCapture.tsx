@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail } from "lucide-react";
+import Button from "@/components/ui/Button";
 
 interface EmailCaptureProps {
   locale?: string;
@@ -28,7 +29,7 @@ export default function EmailCapture({ locale = "en" }: EmailCaptureProps) {
       <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:justify-between md:text-start">
         {/* Label */}
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--color-primary) text-white">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-white">
             <Mail size={16} />
           </span>
           <p className="text-sm font-semibold text-(--color-foreground)">
@@ -55,14 +56,11 @@ export default function EmailCapture({ locale = "en" }: EmailCaptureProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder={isAr ? "بريدك الإلكتروني" : "Enter email"}
               dir={isAr ? "rtl" : "ltr"}
-              className="min-w-0 flex-1 rounded-full border border-(--color-border) bg-white px-4 py-2 text-sm outline-none transition-colors focus:border-(--color-primary) focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="min-w-0 flex-1 rounded-full border border-(--color-border) bg-(--color-surface) px-4 py-2 text-sm outline-none transition-colors focus:border-(--color-primary) focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
-            <button
-              type="submit"
-              className="rounded-full bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            >
+            <Button type="submit" variant="accent">
               {isAr ? "اشترك" : "Subscribe"}
-            </button>
+            </Button>
           </form>
         )}
       </div>

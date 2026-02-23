@@ -57,7 +57,7 @@ export default function ShareActions({ text, url, locale = "en" }: ShareActionsP
       {/* Copy */}
       <button
         onClick={handleCopy}
-        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-(--color-surface)"
+        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-foreground) transition-colors hover:bg-(--color-surface)"
       >
         {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
         {labels.copy}
@@ -68,7 +68,7 @@ export default function ShareActions({ text, url, locale = "en" }: ShareActionsP
         href={twUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-(--color-surface)"
+        className="flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-foreground) transition-colors hover:bg-(--color-surface)"
       >
         <Twitter size={16} />
         {labels.twitter}

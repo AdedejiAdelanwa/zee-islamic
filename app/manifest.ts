@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Search the Quran, Hadith, and Islamic knowledge in seconds.",
     start_url: "/en/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#1B4F72",
+    background_color: "#FAFAF8",
+    theme_color: "#0B5563",
     orientation: "portrait",
     icons: [
       {

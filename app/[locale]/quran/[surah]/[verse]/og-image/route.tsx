@@ -31,7 +31,7 @@ export async function GET(
         style={{
           width: "1200px",
           height: "630px",
-          background: "#1B4F72",
+          background: "#0B5563",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",

@@ -18,7 +18,7 @@ export default function TafsirResultCard({
   const isAr = locale === "ar";
 
   return (
-    <article className="group rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group rounded-2xl border border-(--color-border) border-l-[3px] border-l-(--color-accent) bg-(--color-surface) p-5 shadow-sm transition-shadow hover:shadow-md">
       {/* Source label */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-(--color-primary)">

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Button from "@/components/ui/Button";
 
 interface FilterDrawerProps {
   isOpen: boolean;
@@ -61,13 +62,13 @@ export default function FilterDrawer({
         aria-label={isAr ? "خيارات التصفية" : "Filter options"}
         dir={isAr ? "rtl" : "ltr"}
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-white shadow-xl transition-transform duration-300",
+          "fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-(--color-surface) shadow-xl transition-transform duration-300",
           isOpen ? "translate-y-0" : "translate-y-full"
         )}
       >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="h-1 w-10 rounded-full bg-gray-300" />
+          <div className="h-1 w-10 rounded-full bg-(--color-border)" />
         </div>
 
         {/* Header */}
@@ -75,13 +76,15 @@ export default function FilterDrawer({
           <h2 className="text-base font-semibold">
             {isAr ? "تصفية النتائج" : "Filter Results"}
           </h2>
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="rounded-full p-1.5 text-(--color-muted) transition-colors hover:bg-(--color-surface) hover:text-(--color-foreground)"
             aria-label={isAr ? "إغلاق" : "Close"}
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}

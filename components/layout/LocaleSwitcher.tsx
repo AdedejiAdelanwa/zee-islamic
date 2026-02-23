@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,16 @@ export default function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = LOCALES.find((l) => l.value === locale) ?? LOCALES[0];
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function getLocaleHref(newLocale: string) {
+    const segments = pathname.split("/");
+    segments[1] = newLocale;
+    const newPath = segments.join("/");
+    const qs = searchParams.toString();
+    return qs ? `${newPath}?${qs}` : newPath;
+  }
 
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
@@ -40,7 +51,7 @@ export default function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-full border border-(--color-border) bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-(--color-surface) hover:text-(--color-primary)"
+        className="flex items-center gap-1.5 rounded-full border border-(--color-border) bg-(--color-surface) px-3 py-1.5 text-sm font-medium text-(--color-foreground) transition-colors hover:bg-(--color-surface) hover:text-(--color-primary)"
       >
         <Globe size={15} />
         <span>{current.nativeLabel}</span>
@@ -54,14 +65,14 @@ export default function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
         <div
           role="listbox"
           className={cn(
-            "absolute top-full z-50 mt-1.5 w-36 overflow-hidden rounded-xl border border-(--color-border) bg-white shadow-lg",
+            "absolute top-full z-50 mt-1.5 w-36 overflow-hidden rounded-xl border border-(--color-border) bg-(--color-surface) shadow-lg",
             locale === "ar" ? "left-0" : "right-0",
           )}
         >
           {LOCALES.map((l) => (
             <a
               key={l.value}
-              href={`/${l.value}/`}
+              href={getLocaleHref(l.value)}
               role="option"
               aria-selected={l.value === locale}
               lang={l.value}

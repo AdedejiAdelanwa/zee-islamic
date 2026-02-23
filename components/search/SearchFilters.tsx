@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Button from "@/components/ui/Button";
 import FilterDrawer from "./FilterDrawer";
 
 type Source = "all" | "quran" | "hadith" | "tafsir";
@@ -123,28 +123,24 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
         </span>
         <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-row">
           {SOURCES.map((s) => (
-            <button
+            <Button
               key={s.value}
               type="button"
               role="radio"
               aria-checked={source === s.value}
+              variant={source === s.value ? "primary" : "outline"}
+              size="md"
               onClick={() => handleSourceChange(s.value)}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                source === s.value
-                  ? "bg-(--color-primary) text-white"
-                  : "border border-(--color-border) bg-white text-black hover:border-(--color-primary) hover:text-(--color-primary)",
-              )}
             >
               {isAr ? s.labelAr : s.labelEn}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       {/* Desktop: inline checkboxes */}
       {showHadith && (
-        <div className="hidden w-full rounded-xl border border-(--color-border) bg-white px-4 py-3 md:block">
+        <div className="hidden w-full rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-3 md:block">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
             {isAr ? "مجموعات الحديث" : "Hadith Collections"}
           </p>
@@ -153,7 +149,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
       )}
 
       {showTafsir && (
-        <div className="hidden w-full rounded-xl border border-(--color-border) bg-white px-4 py-3 md:block">
+        <div className="hidden w-full rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-3 md:block">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
             {isAr ? "مصادر التفسير" : "Tafsir Sources"}
           </p>
@@ -163,10 +159,12 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
 
       {/* Mobile: accordion trigger */}
       {(showHadith || showTafsir) && (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="md"
           onClick={() => setDrawerOpen(true)}
-          className="flex items-center gap-1.5 rounded-full border border-(--color-border) bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:border-(--color-primary) hover:text-(--color-primary) md:hidden"
+          className="md:hidden"
         >
           {isAr ? "المجموعات" : "Hadith Collections"}
           {totalSelected > 0 && (
@@ -174,9 +172,9 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
               {totalSelected}
             </span>
           )}
-          <span className="text-(--color-primary) font-bold">+</span>
+          <span className="font-bold text-(--color-primary)">+</span>
           <ChevronDown size={13} className="text-(--color-muted)" />
-        </button>
+        </Button>
       )}
 
       {/* Mobile bottom-sheet drawer */}

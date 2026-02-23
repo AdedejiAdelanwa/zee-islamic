@@ -111,7 +111,7 @@ export default function SearchSidebar({ query, locale }: SearchSidebarProps) {
       dir={isAr ? "rtl" : "ltr"}
     >
       {/* Did you know? */}
-      <div className="rounded-2xl border border-(--color-border) bg-white p-4">
+      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-4">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
           {isAr ? "هل تعلم؟" : "Did you know?"}
         </p>
@@ -152,7 +152,7 @@ export default function SearchSidebar({ query, locale }: SearchSidebarProps) {
       </div>
 
       {/* Related searches */}
-      <div className="rounded-2xl border border-(--color-border) bg-white p-4">
+      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-4">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
           {isAr ? "عمليات بحث ذات صلة" : "Related searches"}
         </p>

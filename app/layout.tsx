@@ -38,7 +38,14 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${notoSans.variable} ${notoArabic.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('zee-theme');if(t==='dark')document.documentElement.classList.add('dark');else if(t==='light')document.documentElement.classList.add('light');}catch(e){}`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

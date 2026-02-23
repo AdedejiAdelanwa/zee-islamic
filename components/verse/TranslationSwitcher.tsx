@@ -39,7 +39,7 @@ export default function TranslationSwitcher({
           <select
             value={currentTranslation}
             onChange={handleChange}
-            className="appearance-none rounded-lg border border-(--color-border) bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-(--color-foreground) transition-colors hover:border-(--color-primary) focus:border-(--color-primary) focus:outline-none"
+            className="appearance-none rounded-lg border border-(--color-border) bg-(--color-surface) py-1.5 pl-3 pr-8 text-sm font-medium text-(--color-foreground) transition-colors hover:border-(--color-primary) focus:border-(--color-primary) focus:outline-none"
           >
             {TRANSLATIONS.map((t) => (
               <option key={t.id} value={t.identifier}>

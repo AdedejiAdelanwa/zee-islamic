@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Colors */
-  --color-primary: #1B4F72;
-  --color-primary-dark: #154060;
-  --color-primary-light: #2E86C1;
+  /* Colors — Deep Teal + Warm Gold brand system */
+  --color-primary: #0B5563;
+  --color-primary-dark: #083D4A;
+  --color-primary-light: #17879E;
 
-  --color-grade-sahih: #16a34a;
-  --color-grade-hasan: #ea580c;
-  --color-grade-daif: #dc2626;
+  /* Accent — Islamic Gold */
+  --color-accent: #C8953A;
+  --color-accent-light: #F5E6C8;
 
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-surface: #f9fafb;
+  /* Semantic */
+  --color-semantic-green: #2D7A5F;
+
+  --color-background: #FAFAF8;
+  --color-foreground: #1A1A2E;
+  --color-muted: #5A6475;
+  --color-border: #E2E8ED;
+  --color-surface: #FFFFFF;
 
   /* Fonts */
   --font-sans: var(--font-noto-sans);
@@ -27,15 +30,59 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAFAF8;
+  --foreground: #1A1A2E;
+  --color-primary: #0B5563;
+  --color-primary-dark: #083D4A;
+  --color-primary-light: #17879E;
+  --color-accent: #C8953A;
+  --color-accent-light: #F5E6C8;
+  --color-semantic-green: #2D7A5F;
+  --color-background: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-foreground: #1A1A2E;
+  --color-muted: #5A6475;
+  --color-border: #E2E8ED;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
+  :root:not(.light) {
+    --background: #0A1628;
+    --foreground: #E8E8E0;
+    --color-background: #0A1628;
+    --color-surface: #0F2035;
+    --color-foreground: #E8E8E0;
+    --color-muted: #8A9AB5;
+    --color-border: #1E3048;
+    --color-primary: #17879E;
+    --color-primary-dark: #0B5563;
   }
+}
+
+/* Manual dark mode — takes priority over system preference */
+html.dark {
+  --background: #0A1628;
+  --foreground: #E8E8E0;
+  --color-background: #0A1628;
+  --color-surface: #0F2035;
+  --color-foreground: #E8E8E0;
+  --color-muted: #8A9AB5;
+  --color-border: #1E3048;
+  --color-primary: #17879E;
+  --color-primary-dark: #0B5563;
+}
+
+/* Manual light mode — overrides system dark preference */
+html.light {
+  --background: #FAFAF8;
+  --foreground: #1A1A2E;
+  --color-background: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-foreground: #1A1A2E;
+  --color-muted: #5A6475;
+  --color-border: #E2E8ED;
+  --color-primary: #0B5563;
+  --color-primary-dark: #083D4A;
 }
 
 body {
@@ -61,6 +108,6 @@ html {
 
 /* Focus visible */
 *:focus-visible {
-  outline: 2px solid #1B4F72;
+  outline: 2px solid #0B5563;
   outline-offset: 2px;
 }

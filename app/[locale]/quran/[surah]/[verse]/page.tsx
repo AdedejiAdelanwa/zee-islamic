@@ -86,6 +86,13 @@ export default async function VersePage({
   const translationLabel =
     TRANSLATIONS.find((t) => t.identifier === translation)?.name ?? translation;
 
+  const verseDetails = [
+    { label: isAr ? "السورة" : "Surah", value: surahNum },
+    { label: isAr ? "الآية" : "Verse", value: verseNum },
+    { label: isAr ? "الجزء" : "Juz", value: ayah.arabic.juz },
+    { label: isAr ? "الصفحة" : "Page", value: ayah.arabic.page },
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6" dir={isAr ? "rtl" : "ltr"}>
       {/* Breadcrumb */}
@@ -117,7 +124,7 @@ export default async function VersePage({
       </div>
 
       {/* Arabic verse */}
-      <div className="mb-6 rounded-2xl border border-(--color-border) bg-white p-6 shadow-sm">
+      <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 shadow-sm">
         <p
           lang="ar"
           dir="rtl"
@@ -164,27 +171,10 @@ export default async function VersePage({
 
       {/* Verse details */}
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          {
-            label: isAr ? "السورة" : "Surah",
-            value: surahNum,
-          },
-          {
-            label: isAr ? "الآية" : "Verse",
-            value: verseNum,
-          },
-          {
-            label: isAr ? "الجزء" : "Juz",
-            value: ayah.arabic.juz,
-          },
-          {
-            label: isAr ? "الصفحة" : "Page",
-            value: ayah.arabic.page,
-          },
-        ].map((item) => (
+        {verseDetails.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-(--color-border) bg-white p-3 text-center"
+            className="rounded-xl border border-(--color-border) bg-(--color-surface) p-3 text-center"
           >
             <p className="text-xs text-(--color-muted)">{item.label}</p>
             <p className="mt-1 text-lg font-bold text-(--color-primary)">
@@ -195,7 +185,7 @@ export default async function VersePage({
       </div>
 
       {/* Share actions */}
-      <div className="rounded-2xl border border-(--color-border) bg-white p-5">
+      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
         <h2 className="mb-4 text-sm font-semibold text-(--color-foreground)">
           {isAr ? "مشاركة الآية" : "Share this verse"}
         </h2>

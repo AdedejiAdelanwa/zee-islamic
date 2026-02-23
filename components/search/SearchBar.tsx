@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Button from "@/components/ui/Button";
 
 interface SearchBarProps {
   locale?: string;
@@ -156,7 +157,7 @@ export default function SearchBar({
           autoComplete="off"
           spellCheck={false}
           className={cn(
-            "w-full rounded-full border border-(--color-border) bg-white py-3.5 text-base text-black shadow-sm transition-all",
+            "w-full rounded-full border border-(--color-border) bg-(--color-surface) py-3.5 text-base text-(--color-foreground) shadow-sm transition-all",
             "placeholder:text-(--color-muted)",
             "focus:border-(--color-primary) focus:outline-none focus:ring-2 focus:ring-primary/20",
             isAr ? "pr-12 pl-24" : "pl-12 pr-24",
@@ -171,22 +172,24 @@ export default function SearchBar({
           )}
         >
           {query && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={handleClear}
-              className="rounded-full p-1.5 text-(--color-muted) transition-colors hover:bg-(--color-surface) hover:text-(--color-foreground)"
               aria-label={isAr ? "مسح" : "Clear"}
             >
               <X size={16} />
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             type="submit"
-            className="rounded-full bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            variant="accent"
+            size="md"
             aria-label={isAr ? "بحث" : "Search"}
           >
             {isAr ? "بحث" : "Go"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -194,7 +197,7 @@ export default function SearchBar({
       {showSuggestions && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-xl border border-(--color-border) bg-white shadow-lg"
+          className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-xl border border-(--color-border) bg-(--color-surface) shadow-lg"
         >
           {suggestions.map((suggestion, index) => (
             <li

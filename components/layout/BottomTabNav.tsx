@@ -5,51 +5,34 @@ import { usePathname } from "next/navigation";
 import { Search, BookOpen, Bookmark, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const TAB_CONFIG = [
+  { labelEn: "Search",    labelAr: "بحث",        icon: Search,   path: "search",    match: "/search" },
+  { labelEn: "Topics",    labelAr: "مواضيع",     icon: BookOpen, path: "",          match: null },
+  { labelEn: "Bookmarks", labelAr: "المحفوظات",  icon: Bookmark, path: "bookmarks", match: "/bookmarks" },
+  { labelEn: "Profile",   labelAr: "الملف",      icon: User,     path: "profile",   match: "/profile" },
+] as const;
+
 interface BottomTabNavProps {
   locale: string;
 }
 
 export default function BottomTabNav({ locale }: BottomTabNavProps) {
   const pathname = usePathname();
-
-  const tabs = [
-    {
-      href: `/${locale}/search`,
-      label: locale === "ar" ? "بحث" : "Search",
-      icon: Search,
-      match: "/search",
-    },
-    {
-      href: `/${locale}/`,
-      label: locale === "ar" ? "مواضيع" : "Topics",
-      icon: BookOpen,
-      match: null,
-    },
-    {
-      href: `/${locale}/bookmarks`,
-      label: locale === "ar" ? "المحفوظات" : "Bookmarks",
-      icon: Bookmark,
-      match: "/bookmarks",
-    },
-    {
-      href: `/${locale}/profile`,
-      label: locale === "ar" ? "الملف" : "Profile",
-      icon: User,
-      match: "/profile",
-    },
-  ];
+  const isAr = locale === "ar";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-(--color-border) bg-white md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-(--color-border) bg-(--color-surface) md:hidden">
       <div className="grid h-16 grid-cols-4">
-        {tabs.map((tab) => {
+        {TAB_CONFIG.map((tab) => {
+          const href = `/${locale}/${tab.path}`;
+          const label = isAr ? tab.labelAr : tab.labelEn;
           const isActive = tab.match ? pathname.includes(tab.match) : pathname === `/${locale}/` || pathname === `/${locale}`;
           const Icon = tab.icon;
 
           return (
             <Link
-              key={tab.href}
-              href={tab.href}
+              key={href}
+              href={href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
                 isActive
@@ -57,11 +40,8 @@ export default function BottomTabNav({ locale }: BottomTabNavProps) {
                   : "text-(--color-muted) hover:text-(--color-foreground)"
               )}
             >
-              <Icon
-                size={20}
-                strokeWidth={isActive ? 2.5 : 2}
-              />
-              <span>{tab.label}</span>
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              <span>{label}</span>
             </Link>
           );
         })}

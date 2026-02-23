@@ -20,6 +20,32 @@ export async function generateMetadata({
   };
 }
 
+const INFO_CATEGORIES = [
+  {
+    emoji: "📖",
+    titleEn: "Quran",
+    titleAr: "القرآن الكريم",
+    descEn: "Search 6,236 verses with translations and tafsir.",
+    descAr: "ابحث في ٦٢٣٦ آية مع التفسير والترجمة.",
+  },
+  {
+    emoji: "📜",
+    titleEn: "Hadith",
+    titleAr: "الحديث الشريف",
+    descEn:
+      "Access authentic hadith from major collections with grade information.",
+    descAr: "تصفح الأحاديث الصحيحة من المجموعات الكبرى مع تصنيف الدرجة.",
+  },
+  {
+    emoji: "🔍",
+    titleEn: "Smart Search",
+    titleAr: "بحث ذكي",
+    descEn:
+      "Search in English or Arabic across all Islamic texts simultaneously.",
+    descAr: "ابحث بالعربية أو الإنجليزية في جميع النصوص الإسلامية.",
+  },
+] as const;
+
 export default async function HomePage({
   params,
 }: {
@@ -79,35 +105,10 @@ export default async function HomePage({
               : "Everything you need, in one place"}
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                emoji: "📖",
-                titleEn: "Quran",
-                titleAr: "القرآن الكريم",
-                descEn: "Search 6,236 verses with translations and tafsir.",
-                descAr: "ابحث في ٦٢٣٦ آية مع التفسير والترجمة.",
-              },
-              {
-                emoji: "📜",
-                titleEn: "Hadith",
-                titleAr: "الحديث الشريف",
-                descEn:
-                  "Access authentic hadith from major collections with grade information.",
-                descAr:
-                  "تصفح الأحاديث الصحيحة من المجموعات الكبرى مع تصنيف الدرجة.",
-              },
-              {
-                emoji: "🔍",
-                titleEn: "Smart Search",
-                titleAr: "بحث ذكي",
-                descEn:
-                  "Search in English or Arabic across all Islamic texts simultaneously.",
-                descAr: "ابحث بالعربية أو الإنجليزية في جميع النصوص الإسلامية.",
-              },
-            ].map((feature) => (
+            {INFO_CATEGORIES.map((feature) => (
               <div
                 key={feature.titleEn}
-                className="rounded-2xl border border-(--color-border) bg-white p-6 text-center shadow-sm"
+                className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 text-center shadow-sm"
               >
                 <div className="mb-3 text-3xl">{feature.emoji}</div>
                 <h3 className="mb-2 font-semibold text-(--color-foreground)">

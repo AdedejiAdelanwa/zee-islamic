@@ -152,7 +152,7 @@ function SearchResultsSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm"
+          className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 shadow-sm"
         >
           <div className="mb-3 h-3 w-20 animate-pulse rounded bg-gray-200" />
           <div className="mb-2 h-6 w-full animate-pulse rounded bg-gray-200" />
