@@ -61,16 +61,23 @@ const SNIPPETS = [
 
 const FALLBACK_SNIPPET = SNIPPETS[0];
 
-const RELATED_TERMS_EN = [
-  "patience", "forgiveness", "prayer", "mercy of Allah", "Day of Judgment",
-  "Paradise", "seeking knowledge", "gratitude", "charity", "repentance",
-  "trust in Allah", "kindness", "honesty", "humility", "love of Allah",
+const POPULAR_EN = ["mercy of Allah", "patience", "prayer", "forgiveness", "Day of Judgment"];
+const POPULAR_AR = ["رحمة الله", "الصبر", "الصلاة", "المغفرة", "يوم القيامة"];
+
+const MODIFIERS_EN = [
+  "in Quran",
+  "in hadith",
+  "meaning in Islam",
+  "verses about",
+  "Islamic view of",
 ];
 
-const RELATED_TERMS_AR = [
-  "الصبر", "الصلاة", "الرحمة", "يوم القيامة", "الجنة",
-  "طلب العلم", "الشكر", "الصدقة", "التوبة", "التوكل",
-  "الإخلاص", "الكرم", "الأمانة", "التواضع", "حب الله",
+const MODIFIERS_AR = [
+  "في القرآن",
+  "في الحديث",
+  "معنى",
+  "آيات عن",
+  "حكم",
 ];
 
 function pickSnippet(query: string) {
@@ -81,18 +88,18 @@ function pickSnippet(query: string) {
   );
 }
 
-function pickRelated(query: string, locale: string, count = 5): string[] {
-  const terms = locale === "ar" ? RELATED_TERMS_AR : RELATED_TERMS_EN;
-  const q = query.toLowerCase();
-  // Exclude the current query; prefer terms that share a word with the query
-  const scored = terms
-    .filter((t) => t.toLowerCase() !== q)
-    .map((t) => ({
-      term: t,
-      score: t.toLowerCase().split(" ").some((w) => q.includes(w)) ? 1 : 0,
-    }))
-    .sort((a, b) => b.score - a.score);
-  return scored.slice(0, count).map((s) => s.term);
+function buildRelatedSearches(query: string, locale: string): string[] {
+  const isAr = locale === "ar";
+  const trimmed = query.trim();
+
+  if (!trimmed) return isAr ? POPULAR_AR : POPULAR_EN;
+
+  const base = trimmed.split(/\s+/).slice(0, 2).join(" ");
+  const modifiers = isAr ? MODIFIERS_AR : MODIFIERS_EN;
+
+  return modifiers.map((mod) =>
+    isAr ? `${base} ${mod}` : `${base} ${mod}`
+  );
 }
 
 interface SearchSidebarProps {
@@ -103,7 +110,7 @@ interface SearchSidebarProps {
 export default function SearchSidebar({ query, locale }: SearchSidebarProps) {
   const isAr = locale === "ar";
   const snippet = pickSnippet(query);
-  const related = pickRelated(query, locale);
+  const related = buildRelatedSearches(query, locale);
 
   return (
     <aside

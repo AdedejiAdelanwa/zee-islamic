@@ -2,16 +2,19 @@ import Link from "next/link";
 import { ScrollText, ExternalLink } from "lucide-react";
 import type { Hadith } from "@/lib/types";
 import HadithGradeBadge from "@/components/ui/HadithGradeBadge";
+import Highlight from "@/components/ui/Highlight";
 import { truncate } from "@/lib/utils";
 
 interface HadithResultCardProps {
   result: Hadith;
   locale?: string;
+  query?: string;
 }
 
 export default function HadithResultCard({
   result,
   locale = "en",
+  query = "",
 }: HadithResultCardProps) {
   const isAr = locale === "ar";
   const collectionName = result.book?.bookName ?? result.bookSlug;
@@ -36,7 +39,7 @@ export default function HadithResultCard({
           dir="rtl"
           className="arabic-text mb-3 text-right text-xl leading-loose text-(--color-foreground)"
         >
-          {truncate(result.hadithArabic, 300)}
+          <Highlight text={truncate(result.hadithArabic, 300)} query={query} />
         </p>
       )}
 
@@ -45,7 +48,7 @@ export default function HadithResultCard({
         className="mb-4 text-sm leading-relaxed text-(--color-muted)"
         dir={isAr ? "rtl" : "ltr"}
       >
-        {truncate(result.hadithEnglish, 400)}
+        <Highlight text={truncate(result.hadithEnglish, 400)} query={query} />
       </p>
 
       {/* Narrator */}
