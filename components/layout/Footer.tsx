@@ -36,7 +36,7 @@ export default function Footer({ locale }: FooterProps) {
             <ul className="space-y-2 text-sm text-(--color-muted)">
               <li>
                 <Link
-                  href={`/${locale}/search?type=quran`}
+                  href={`/${locale}/quran`}
                   className="hover:text-(--color-primary)"
                 >
                   {isAr ? "القرآن الكريم" : "Quran"}

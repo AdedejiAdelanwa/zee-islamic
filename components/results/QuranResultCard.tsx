@@ -1,16 +1,12 @@
 import Link from "next/link";
 import { BookOpen, ExternalLink } from "lucide-react";
 import type { AyahWithTranslation } from "@/lib/types";
+import Highlight from "@/components/ui/Highlight";
 
 interface QuranResultCardProps {
   result: AyahWithTranslation;
   locale?: string;
   query?: string;
-}
-
-function highlightQuery(text: string, query: string): string {
-  if (!query) return text;
-  return text; // Returning plain text for server component; highlighting done client-side if needed
 }
 
 export default function QuranResultCard({
@@ -60,7 +56,7 @@ export default function QuranResultCard({
           dir={isAr ? "rtl" : "ltr"}
           lang={isAr ? "ar" : "en"}
         >
-          {translation.text}
+          <Highlight text={translation.text} query={query ?? ""} />
         </p>
       )}
 

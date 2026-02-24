@@ -98,14 +98,14 @@ export default async function VersePage({
       {/* Breadcrumb */}
       <Breadcrumb
         locale={locale}
-        className="mb-6"
+        className="mb-3"
         items={[
           { label: isAr ? "الرئيسية" : "Home", href: `/${locale}/` },
           {
             label: isAr ? "القرآن" : "Quran",
-            href: `/${locale}/search?type=quran`,
+            href: `/${locale}/quran`,
           },
-          { label: surahName },
+          { label: surahName, href: `/${locale}/quran/${surahNum}` },
           { label: isAr ? `الآية ${verseNum}` : `Verse ${verseNum}` },
         ]}
       />
@@ -128,7 +128,7 @@ export default async function VersePage({
         <p
           lang="ar"
           dir="rtl"
-          className="arabic-text text-right text-3xl leading-[2.5] text-(--color-foreground) md:text-4xl"
+          className="arabic-text text-right text-2xl leading-[2.5] text-(--color-foreground) md:text-3xl"
         >
           {ayah.arabic.text}
         </p>

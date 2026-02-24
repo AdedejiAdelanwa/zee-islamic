@@ -30,6 +30,9 @@ const TAFSIR_SOURCES = [
   { value: "tabari", labelEn: "Al-Tabari", labelAr: "الطبري" },
 ];
 
+const ALL_COLLECTIONS = HADITH_COLLECTIONS.map((c) => c.value);
+const ALL_TAFSIR = TAFSIR_SOURCES.map((t) => t.value);
+
 interface SearchFiltersProps {
   locale?: string;
 }
@@ -39,45 +42,64 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const source = (searchParams.get("type") as Source) ?? "all";
-  const [hadithCollections, setHadithCollections] = useState<string[]>([]);
-  const [tafsirSources, setTafsirSources] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const source = (searchParams.get("type") as Source) ?? "all";
   const showHadith = source === "all" || source === "hadith";
   const showTafsir = source === "all" || source === "tafsir";
-  const totalSelected = hadithCollections.length + tafsirSources.length;
+
+  // No URL params = implicit "all selected"; explicit params = user's selection
+  const rawCollections = searchParams.getAll("collection");
+  const rawTafsir = searchParams.getAll("tafsir");
+  const effectiveCollections = showHadith
+    ? rawCollections.length === 0 ? ALL_COLLECTIONS : rawCollections
+    : [];
+  const effectiveTafsir = showTafsir
+    ? rawTafsir.length === 0 ? ALL_TAFSIR : rawTafsir
+    : [];
+
+  const deselectedCount =
+    (showHadith ? ALL_COLLECTIONS.length - effectiveCollections.length : 0) +
+    (showTafsir ? ALL_TAFSIR.length - effectiveTafsir.length : 0);
 
   function handleSourceChange(val: Source) {
     const params = new URLSearchParams(searchParams.toString());
+    // Clear sub-filters — switching source resets to implicit "all selected"
+    params.delete("collection");
+    params.delete("tafsir");
     if (val === "all") {
       params.delete("type");
     } else {
       params.set("type", val);
     }
     router.replace(`${pathname}?${params.toString()}`);
-
-    if (val === "quran") {
-      setHadithCollections([]);
-      setTafsirSources([]);
-    } else if (val === "hadith") {
-      setTafsirSources([]);
-    } else if (val === "tafsir") {
-      setHadithCollections([]);
-    }
   }
 
   function toggleCollection(val: string) {
-    setHadithCollections((prev) =>
-      prev.includes(val) ? prev.filter((c) => c !== val) : [...prev, val],
-    );
+    const next = effectiveCollections.includes(val)
+      ? effectiveCollections.filter((c) => c !== val)
+      : [...effectiveCollections, val];
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("collection");
+    // All selected → remove params (implicit); partial → write explicit list
+    if (next.length < ALL_COLLECTIONS.length) {
+      next.forEach((c) => params.append("collection", c));
+    }
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function toggleTafsir(val: string) {
-    setTafsirSources((prev) =>
-      prev.includes(val) ? prev.filter((t) => t !== val) : [...prev, val],
-    );
+    const next = effectiveTafsir.includes(val)
+      ? effectiveTafsir.filter((t) => t !== val)
+      : [...effectiveTafsir, val];
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tafsir");
+    if (next.length < ALL_TAFSIR.length) {
+      next.forEach((t) => params.append("tafsir", t));
+    }
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   const hadithCheckboxList = (
@@ -89,7 +111,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
         >
           <input
             type="checkbox"
-            checked={hadithCollections.includes(col.value)}
+            checked={effectiveCollections.includes(col.value)}
             onChange={() => toggleCollection(col.value)}
             className="h-3.5 w-3.5 accent-(--color-primary)"
           />
@@ -108,7 +130,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
         >
           <input
             type="checkbox"
-            checked={tafsirSources.includes(t.value)}
+            checked={effectiveTafsir.includes(t.value)}
             onChange={() => toggleTafsir(t.value)}
             className="h-3.5 w-3.5 accent-(--color-primary)"
           />
@@ -168,7 +190,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
         </div>
       )}
 
-      {/* Mobile: accordion trigger */}
+      {/* Mobile: drawer trigger */}
       {(showHadith || showTafsir) && (
         <Button
           type="button"
@@ -177,13 +199,12 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
           onClick={() => setDrawerOpen(true)}
           className="md:hidden"
         >
-          {isAr ? "المجموعات" : "Hadith Collections"}
-          {totalSelected > 0 && (
+          {isAr ? "المجموعات" : "Collections"}
+          {deselectedCount > 0 && (
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-(--color-primary) text-[10px] text-white">
-              {totalSelected}
+              -{deselectedCount}
             </span>
           )}
-          <span className="font-bold text-(--color-primary)">+</span>
           <ChevronDown size={13} className="text-(--color-muted)" />
         </Button>
       )}
@@ -208,7 +229,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
                   >
                     <input
                       type="checkbox"
-                      checked={hadithCollections.includes(col.value)}
+                      checked={effectiveCollections.includes(col.value)}
                       onChange={() => toggleCollection(col.value)}
                       className="h-4 w-4 accent-(--color-primary)"
                     />
@@ -236,7 +257,7 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
                   >
                     <input
                       type="checkbox"
-                      checked={tafsirSources.includes(t.value)}
+                      checked={effectiveTafsir.includes(t.value)}
                       onChange={() => toggleTafsir(t.value)}
                       className="h-4 w-4 accent-(--color-primary)"
                     />
