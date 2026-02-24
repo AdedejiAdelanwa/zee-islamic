@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import Button from "@/components/ui/Button";
 import FilterDrawer from "./FilterDrawer";
@@ -35,8 +36,11 @@ interface SearchFiltersProps {
 
 export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
   const isAr = locale === "ar";
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const [source, setSource] = useState<Source>("all");
+  const source = (searchParams.get("type") as Source) ?? "all";
   const [hadithCollections, setHadithCollections] = useState<string[]>([]);
   const [tafsirSources, setTafsirSources] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -46,7 +50,14 @@ export default function SearchFilters({ locale = "en" }: SearchFiltersProps) {
   const totalSelected = hadithCollections.length + tafsirSources.length;
 
   function handleSourceChange(val: Source) {
-    setSource(val);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "all") {
+      params.delete("type");
+    } else {
+      params.set("type", val);
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+
     if (val === "quran") {
       setHadithCollections([]);
       setTafsirSources([]);

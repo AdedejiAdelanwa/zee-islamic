@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
+import { Noto_Sans, Noto_Sans_Arabic, Scheherazade_New } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 
@@ -14,6 +14,13 @@ const notoArabic = Noto_Sans_Arabic({
   variable: "--font-noto-arabic",
   subsets: ["arabic"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const scheherazade = Scheherazade_New({
+  variable: "--font-scheherazade",
+  subsets: ["arabic"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -36,7 +43,7 @@ export default async function RootLayout({
       lang={locale}
       dir={isAr ? "rtl" : "ltr"}
       suppressHydrationWarning
-      className={`${notoSans.variable} ${notoArabic.variable}`}
+      className={`${notoSans.variable} ${notoArabic.variable} ${scheherazade.variable}`}
     >
       <body className="antialiased">
         <script

@@ -22,6 +22,7 @@
   /* Fonts */
   --font-sans: var(--font-noto-sans);
   --font-arabic: var(--font-noto-arabic);
+  --font-quran: var(--font-scheherazade);
 
   /* Breakpoints */
   --breakpoint-sm: 375px;
@@ -93,12 +94,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Arabic text always uses Arabic font and RTL */
-[lang="ar"],
-.arabic-text {
+/* General Arabic UI text — Noto Sans Arabic (clean, modern) */
+[lang="ar"] {
   font-family: var(--font-noto-arabic), "Noto Sans Arabic", sans-serif;
   direction: rtl;
   text-align: right;
+}
+
+/* Quran / Hadith Arabic text — Scheherazade New (authentic Mushaf style) */
+.arabic-text {
+  font-family: var(--font-scheherazade), "Scheherazade New", var(--font-noto-arabic), sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 2;
 }
 
 /* Smooth scrolling */

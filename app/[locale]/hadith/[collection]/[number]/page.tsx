@@ -14,22 +14,26 @@ interface HadithPageProps {
 export async function generateMetadata({
   params,
 }: HadithPageProps): Promise<Metadata> {
-  const { locale, collection, number } = await params;
-  const isAr = locale === "ar";
+  try {
+    const { locale, collection, number } = await params;
+    const isAr = locale === "ar";
 
-  const hadith = await getHadith(collection, number);
-  if (!hadith) return { title: `Hadith ${collection} #${number}` };
+    const hadith = await getHadith(collection, number);
+    if (!hadith) return { title: `Hadith ${collection} #${number}` };
 
-  const collectionName =
-    HADITH_COLLECTIONS.find((c) => c.slug === collection)?.name ?? collection;
+    const collectionName =
+      HADITH_COLLECTIONS.find((c) => c.slug === collection)?.name ?? collection;
 
-  return {
-    title: isAr
-      ? `حديث ${collectionName} #${number}`
-      : `${collectionName} — Hadith #${number}`,
-    description: truncate(hadith.hadithEnglish, 160),
-    alternates: buildAlternates(locale, `hadith/${collection}/${number}`),
-  };
+    return {
+      title: isAr
+        ? `حديث ${collectionName} #${number}`
+        : `${collectionName} — Hadith #${number}`,
+      description: truncate(hadith.hadithEnglish, 160),
+      alternates: buildAlternates(locale, `hadith/${collection}/${number}`),
+    };
+  } catch {
+    return { title: "Hadith — ZEE" };
+  }
 }
 
 export default async function HadithPage({ params }: HadithPageProps) {

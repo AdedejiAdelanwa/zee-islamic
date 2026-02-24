@@ -1,72 +1,108 @@
 import type { Hadith } from "./types";
+import { fetchZee } from "./api";
 
-const BASE_URL = "https://api.sunnah.com/v1/";
-const API_KEY = process.env.HADITH_API_KEY;
-
-interface HadithApiResponse {
-  status: number;
-  hadiths?: {
-    current_page: number;
-    data: Hadith[];
-    total: number;
-    per_page: number;
+// Maps ZEE hadith response to the Hadith shape the frontend expects
+function mapHadith(raw: {
+  id: string;
+  hadith_number: string;
+  collection: {
+    slug: string;
+    name_english: string;
+    author_english: string;
+    hadith_count: number | null;
+    default_grade: string | null;
   };
-  hadith?: Hadith;
-}
-
-async function fetchHadith<T>(
-  path: string,
-  params: Record<string, string> = {},
-  revalidate = 3600,
-): Promise<T> {
-  const searchParams = new URLSearchParams({
-    apiKey: API_KEY ?? "",
-    ...params,
-  });
-
-  const url = `${BASE_URL}${path}?${searchParams.toString()}`;
-
-  const res = await fetch(url, {
-    next: { revalidate },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Hadith API error: ${res.status} ${res.statusText}`);
-  }
-
-  return res.json() as Promise<T>;
+  chapter: { number: string; name_english: string | null; name_arabic: string | null } | null;
+  narrator: string | null;
+  arabic: string | null;
+  english: string;
+  grades: Array<{ grade: string; graded_by: string | null }>;
+}): Hadith {
+  return {
+    id: 0, // not used in frontend display
+    hadithNumber: raw.hadith_number,
+    englishNarrator: raw.narrator ?? "",
+    hadithEnglish: raw.english,
+    hadithArabic: raw.arabic ?? undefined,
+    bookSlug: raw.collection.slug,
+    chapterId: raw.chapter?.number ?? "",
+    book: {
+      bookName: raw.collection.name_english,
+      writerName: raw.collection.author_english,
+      slug: raw.collection.slug,
+      hadithCount: raw.collection.hadith_count ?? 0,
+      chapterCount: 0,
+    },
+    chapter: raw.chapter
+      ? {
+          id: 0,
+          chapterNumber: raw.chapter.number,
+          chapterEnglish: raw.chapter.name_english ?? "",
+          chapterArabic: raw.chapter.name_arabic ?? undefined,
+          bookSlug: raw.collection.slug,
+        }
+      : undefined,
+    grades: raw.grades.map((g) => ({ grade: g.grade, graded_by: g.graded_by ?? undefined })),
+  };
 }
 
 export async function searchHadiths(query: string): Promise<Hadith[]> {
-  try {
-    const data = await fetchHadith<HadithApiResponse>(
-      "/hadiths",
-      {
-        hadithEnglish: query,
-        limit: "20",
-      },
-      300,
-    );
+  const params = new URLSearchParams({ q: query, type: "hadith" });
+  const data = await fetchZee<{
+    results: {
+      hadiths: Array<{
+        id: string;
+        hadith_number: string;
+        book_slug: string;
+        book_name: string;
+        narrator: string | null;
+        english: string;
+        grade: string | null;
+      }>;
+    };
+  }>(`/api/search?${params.toString()}`, 300);
 
-    return data.hadiths?.data ?? [];
-  } catch (error) {
-    console.error("Hadith search error:", error);
-    return [];
-  }
+  return data.results.hadiths.map((h) => ({
+    id: 0,
+    hadithNumber: h.hadith_number,
+    englishNarrator: h.narrator ?? "",
+    hadithEnglish: h.english,
+    bookSlug: h.book_slug,
+    chapterId: "",
+    book: {
+      bookName: h.book_name,
+      writerName: "",
+      slug: h.book_slug,
+      hadithCount: 0,
+      chapterCount: 0,
+    },
+    grades: h.grade ? [{ grade: h.grade }] : [],
+  }));
 }
 
 export async function getHadith(
   collection: string,
-  hadithNumber: string,
+  hadithNumber: string
 ): Promise<Hadith | null> {
   try {
-    const data = await fetchHadith<HadithApiResponse>(
-      `/${collection}/hadiths`,
-      { hadithNumber },
-      3600,
-    );
+    const raw = await fetchZee<{
+      id: string;
+      hadith_number: string;
+      collection: {
+        slug: string;
+        name_english: string;
+        author_english: string;
+        hadith_count: number | null;
+        default_grade: string | null;
+      };
+      chapter: { number: string; name_english: string | null; name_arabic: string | null } | null;
+      narrator: string | null;
+      arabic: string | null;
+      english: string;
+      grades: Array<{ grade: string; graded_by: string | null }>;
+    }>(`/api/hadith/${collection}/${hadithNumber}`, 86400);
 
-    return data.hadiths?.data?.[0] ?? null;
+    return mapHadith(raw);
   } catch (error) {
     console.error("Get hadith error:", error);
     return null;

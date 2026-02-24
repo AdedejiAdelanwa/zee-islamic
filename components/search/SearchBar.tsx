@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
@@ -42,6 +42,7 @@ export default function SearchBar({
   autoFocus = false,
 }: SearchBarProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -72,17 +73,25 @@ export default function SearchBar({
     [allSuggestions], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  function buildSearchUrl(q: string) {
+    const params = new URLSearchParams();
+    params.set("q", q);
+    const type = searchParams.get("type");
+    if (type && type !== "all") params.set("type", type);
+    return `/${locale}/search?${params.toString()}`;
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
     setShowSuggestions(false);
-    router.push(`/${locale}/search?q=${encodeURIComponent(query.trim())}`);
+    router.push(buildSearchUrl(query.trim()));
   }
 
   function handleSuggestionClick(suggestion: string) {
     setQuery(suggestion);
     setShowSuggestions(false);
-    router.push(`/${locale}/search?q=${encodeURIComponent(suggestion)}`);
+    router.push(buildSearchUrl(suggestion));
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

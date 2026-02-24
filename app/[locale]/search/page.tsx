@@ -9,6 +9,7 @@ import QuranResultCard from "@/components/results/QuranResultCard";
 import HadithResultCard from "@/components/results/HadithResultCard";
 import { searchQuran } from "@/lib/quran";
 import { searchHadiths } from "@/lib/hadith";
+import { ZeeApiError } from "@/lib/api";
 import type { Locale } from "@/lib/types";
 
 const PAGE_SIZE = 10;
@@ -27,6 +28,81 @@ interface SearchPageProps {
   }>;
 }
 
+function resolveError(
+  error: unknown,
+  isAr: boolean
+): { message: string; hint: string; code?: number } {
+  if (error instanceof ZeeApiError) {
+    const { status, path } = error;
+    if (status === 0)
+      return {
+        code: undefined,
+        message: isAr ? "تعذّر الاتصال بالخادم" : "Could not connect to server",
+        hint: isAr ? `تحقق من اتصالك بالإنترنت.` : `Network error — ${path}`,
+      };
+    if (status === 404)
+      return {
+        code: 404,
+        message: isAr ? "لم يُعثر على هذا المحتوى" : "Content not found",
+        hint: isAr ? path : path,
+      };
+    if (status === 429)
+      return {
+        code: 429,
+        message: isAr ? "طلبات كثيرة جداً" : "Too many requests",
+        hint: isAr ? "انتظر لحظة وأعد المحاولة." : "Wait a moment and try again.",
+      };
+    if (status >= 500)
+      return {
+        code: status,
+        message:
+          status === 503
+            ? isAr
+              ? "الخدمة غير متاحة مؤقتاً"
+              : "Service temporarily unavailable"
+            : isAr
+              ? "خطأ في الخادم"
+              : "Server error",
+        hint: isAr ? path : path,
+      };
+    return {
+      code: status,
+      message: isAr ? "خطأ غير متوقع" : "Unexpected error",
+      hint: path,
+    };
+  }
+  return {
+    message: isAr ? "خطأ في الاتصال" : "Connection error",
+    hint: isAr ? "تحقق من اتصالك وحاول مرة أخرى." : "Check your connection and try again.",
+  };
+}
+
+function SectionFetchError({
+  source,
+  error,
+  isAr,
+}: {
+  source: string;
+  error: unknown;
+  isAr: boolean;
+}) {
+  const { message, hint, code } = resolveError(error, isAr);
+  return (
+    <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
+      <p className="flex items-center gap-2 text-sm font-medium text-(--color-foreground)">
+        ⚠ {isAr ? `تعذّر تحميل نتائج ${source}` : `Could not load ${source} results`}
+        {code !== undefined && (
+          <span className="rounded bg-(--color-border) px-1.5 py-0.5 font-mono text-xs text-(--color-muted)">
+            {code}
+          </span>
+        )}
+      </p>
+      <p className="mt-1 text-xs text-(--color-muted)">{message}</p>
+      <p className="mt-0.5 font-mono text-xs text-(--color-muted) opacity-60">{hint}</p>
+    </div>
+  );
+}
+
 async function SearchResults({
   query,
   locale,
@@ -42,10 +118,36 @@ async function SearchResults({
 }) {
   const isAr = locale === "ar";
 
-  const [allQuran, allHadith] = await Promise.all([
+  const [quranResult, hadithResult] = await Promise.allSettled([
     type === "hadith" ? Promise.resolve([]) : searchQuran(query),
     type === "quran" ? Promise.resolve([]) : searchHadiths(query),
   ]);
+
+  const allQuran = quranResult.status === "fulfilled" ? quranResult.value : [];
+  const allHadith = hadithResult.status === "fulfilled" ? hadithResult.value : [];
+  const quranFailed = quranResult.status === "rejected" && type !== "hadith";
+  const hadithFailed = hadithResult.status === "rejected" && type !== "quran";
+
+  if (quranFailed && hadithFailed) {
+    const qErr = resolveError(quranResult.reason, isAr);
+    const hErr = resolveError(hadithResult.reason, isAr);
+    return (
+      <div className="py-16 text-center">
+        <div className="mb-3 text-4xl">⚠</div>
+        <h2 className="mb-2 text-lg font-semibold text-(--color-foreground)">
+          {isAr ? "تعذّر تحميل النتائج" : "Could not load results"}
+        </h2>
+        <div className="mx-auto mt-3 max-w-sm space-y-1 text-left font-mono text-xs text-(--color-muted)">
+          <p>
+            Quran{qErr.code !== undefined ? ` [${qErr.code}]` : ""}: {qErr.message}
+          </p>
+          <p>
+            Hadith{hErr.code !== undefined ? ` [${hErr.code}]` : ""}: {hErr.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Merge into a tagged list, Quran first
   type Tagged =
@@ -92,7 +194,9 @@ async function SearchResults({
 
       <div className="space-y-8">
         {/* Quran results */}
-        {pageQuran.length > 0 && (
+        {quranFailed ? (
+          <SectionFetchError source={isAr ? "القرآن" : "Quran"} error={quranResult.reason} isAr={isAr} />
+        ) : pageQuran.length > 0 && (
           <section>
             <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-(--color-foreground)">
               📖 {isAr ? "آيات قرآنية" : "Quranic Verses"}
@@ -114,7 +218,9 @@ async function SearchResults({
         )}
 
         {/* Hadith results */}
-        {pageHadith.length > 0 && (
+        {hadithFailed ? (
+          <SectionFetchError source={isAr ? "الحديث" : "Hadith"} error={hadithResult.reason} isAr={isAr} />
+        ) : pageHadith.length > 0 && (
           <section>
             <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-(--color-foreground)">
               📜 {isAr ? "أحاديث" : "Hadiths"}

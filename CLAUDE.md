@@ -108,8 +108,8 @@ components/
 
 ### Phase 1
 
-- @/Users/adasi/Documents/projects/zee-master-docs/ZEE_Master_Product_Strategy.md
+- @/Users/adedejiadelanwa/Documents/zee-master-docs/ZEE_Master_Product_Strategy.md
 
 ### Phase 2
 
-- @/Users/adasi/Documents/projects/zee-master-docs/ZEE_AI_Integration_Master_Strategy.md
+- @/Users/adedejiadelanwa/Documents/zee-master-docs/ZEE_AI_Integration_Master_Strategy.md
