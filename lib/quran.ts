@@ -1,7 +1,6 @@
 import type { Ayah, AyahWithTranslation, Surah } from "./types";
 import { fetchZee } from "./api";
-
-const DEFAULT_TRANSLATION = "en.sahih";
+import { getDefaultTranslation } from "./translations";
 
 // Maps ZEE surah + verse data into the Ayah shape the frontend expects
 function buildAyah(
@@ -42,7 +41,7 @@ function buildAyah(
 export async function getAyah(
   surah: number,
   verse: number,
-  translation = DEFAULT_TRANSLATION
+  translation = getDefaultTranslation("en")
 ): Promise<AyahWithTranslation> {
   const data = await fetchZee<{
     surah: {
@@ -101,7 +100,7 @@ export async function getAyah(
 
 export async function getSurah(
   surahNumber: number,
-  translation = DEFAULT_TRANSLATION
+  translation = getDefaultTranslation("en")
 ): Promise<{ arabic: Surah; translation: Surah }> {
   const data = await fetchZee<{
     surah: {
@@ -149,7 +148,7 @@ export async function getSurah(
 
 export async function searchQuran(
   query: string,
-  translation = DEFAULT_TRANSLATION
+  translation = getDefaultTranslation("en")
 ): Promise<AyahWithTranslation[]> {
   const params = new URLSearchParams({
     q: query,

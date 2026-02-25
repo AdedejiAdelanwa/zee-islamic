@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import TranslationSwitcher from "@/components/verse/TranslationSwitcher";
 import { getSurah } from "@/lib/quran";
-import { TRANSLATIONS } from "@/lib/types";
+import { TRANSLATIONS, getDefaultTranslation, getTranslationDirection } from "@/lib/translations";
 import { buildAlternates } from "@/lib/alternates";
 
 interface SurahPageProps {
@@ -44,7 +44,7 @@ export async function generateMetadata({
 
 export default async function SurahPage({ params, searchParams }: SurahPageProps) {
   const { locale, surah } = await params;
-  const { translation = "en.sahih" } = await searchParams;
+  const { translation = getDefaultTranslation(locale) } = await searchParams;
   const isAr = locale === "ar";
 
   const surahNum = Number(surah);
@@ -60,6 +60,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
   const { arabic, translation: translationSurah } = surahData;
   const translationLabel =
     TRANSLATIONS.find((t) => t.identifier === translation)?.name ?? translation;
+  const translationDir = getTranslationDirection(translation);
 
   // Bismillah is shown for all surahs except Al-Fatiha (1, has it as verse 1)
   // and At-Tawbah (9, revealed without it)
@@ -208,8 +209,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
                 {/* Translation */}
                 <p
                   className="text-sm leading-relaxed text-(--color-muted)"
-                  dir="ltr"
-                  lang="en"
+                  dir={translationDir}
                 >
                   {v.translation}
                 </p>

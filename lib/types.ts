@@ -94,40 +94,9 @@ export interface SearchResult {
   total: number;
 }
 
-// Translation types
-export interface Translation {
-  id: string;
-  name: string;
-  language: string;
-  identifier: string;
-}
-
-export const TRANSLATIONS: Translation[] = [
-  {
-    id: "en.sahih",
-    name: "Sahih International",
-    language: "en",
-    identifier: "en.sahih",
-  },
-  {
-    id: "en.pickthall",
-    name: "Pickthall",
-    language: "en",
-    identifier: "en.pickthall",
-  },
-  {
-    id: "en.yusufali",
-    name: "Yusuf Ali",
-    language: "en",
-    identifier: "en.yusufali",
-  },
-  {
-    id: "en.asad",
-    name: "Muhammad Asad",
-    language: "en",
-    identifier: "en.asad",
-  },
-];
+// Translation types — data lives in lib/translations.ts
+export type { Translation } from "./translations";
+export { TRANSLATIONS, getDefaultTranslation, getTranslationDirection, groupByLanguage } from "./translations";
 
 // API response types
 export interface AlQuranApiResponse<T> {
