@@ -46,8 +46,9 @@ function mapHadith(raw: {
   };
 }
 
-export async function searchHadiths(query: string): Promise<Hadith[]> {
+export async function searchHadiths(query: string, collections?: string[]): Promise<Hadith[]> {
   const params = new URLSearchParams({ q: query, type: "hadith" });
+  collections?.forEach((c) => params.append("collection", c));
   const data = await fetchZee<{
     results: {
       hadiths: Array<{

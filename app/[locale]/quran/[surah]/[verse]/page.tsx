@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BookMarked } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ShareActions from "@/components/verse/ShareActions";
 import TranslationSwitcher from "@/components/verse/TranslationSwitcher";
+import TafsirSourceSwitcher from "@/components/verse/TafsirSourceSwitcher";
 import TransliterationToggle from "@/components/verse/TransliterationToggle";
 import { getAyah } from "@/lib/quran";
-import { TRANSLATIONS } from "@/lib/types";
+import { getTafsir } from "@/lib/tafsir";
+import { TRANSLATIONS, getDefaultTranslation, getTranslationDirection } from "@/lib/translations";
 import { buildAlternates } from "@/lib/alternates";
+
+const VALID_TAFSIR_SOURCES = ["ibn-kathir", "al-tabari"];
 
 interface VersePageProps {
   params: Promise<{ locale: string; surah: string; verse: string }>;
-  searchParams: Promise<{ translation?: string }>;
+  searchParams: Promise<{ translation?: string; tafsir?: string }>;
 }
 
 export async function generateMetadata({
@@ -19,7 +24,7 @@ export async function generateMetadata({
   searchParams,
 }: VersePageProps): Promise<Metadata> {
   const { locale, surah, verse } = await params;
-  const { translation = "en.sahih" } = await searchParams;
+  const { translation = getDefaultTranslation(locale) } = await searchParams;
 
   try {
     const ayah = await getAyah(Number(surah), Number(verse), translation);
@@ -60,8 +65,9 @@ export default async function VersePage({
   searchParams,
 }: VersePageProps) {
   const { locale, surah, verse } = await params;
-  const { translation = "en.sahih" } = await searchParams;
+  const { translation = getDefaultTranslation(locale), tafsir: tafsirSource = "ibn-kathir" } = await searchParams;
   const isAr = locale === "ar";
+  const translationDir = getTranslationDirection(translation);
 
   const surahNum = Number(surah);
   const verseNum = Number(verse);
@@ -76,6 +82,9 @@ export default async function VersePage({
   } catch {
     notFound();
   }
+
+  const activeSource = VALID_TAFSIR_SOURCES.includes(tafsirSource) ? tafsirSource : "ibn-kathir";
+  const tafsirData = await getTafsir(surahNum, verseNum, activeSource);
 
   const surahName = ayah.arabic.surah?.englishName ?? `Surah ${surahNum}`;
   const surahArabicName = ayah.arabic.surah?.name ?? "";
@@ -154,7 +163,7 @@ export default async function VersePage({
       <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
         <p
           className="text-base leading-relaxed text-(--color-foreground)"
-          dir={isAr ? "rtl" : "ltr"}
+          dir={translationDir}
         >
           &ldquo;{ayah.translation.text}&rdquo;
         </p>
@@ -166,6 +175,52 @@ export default async function VersePage({
             text={ayah.transliteration.text}
             isAr={isAr}
           />
+        )}
+      </div>
+
+      {/* Tafsir section */}
+      <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-(--color-foreground)">
+            <BookMarked size={16} className="text-(--color-primary)" />
+            {isAr ? "التفسير" : "Tafsir"}
+          </h2>
+          <Suspense fallback={null}>
+            <TafsirSourceSwitcher currentSource={activeSource} locale={locale} />
+          </Suspense>
+        </div>
+        <hr className="mb-4 border-(--color-border)" />
+
+        {tafsirData ? (
+          <div>
+            <div className="relative">
+              <div className="h-64 overflow-y-auto">
+                {tafsirData.text_english ? (
+                  <p className="text-sm leading-relaxed text-(--color-foreground)" dir="ltr">
+                    {tafsirData.text_english}
+                  </p>
+                ) : tafsirData.text_arabic ? (
+                  <p
+                    className="arabic-text text-right text-lg leading-relaxed text-(--color-foreground)"
+                    dir="rtl"
+                    lang="ar"
+                  >
+                    {tafsirData.text_arabic}
+                  </p>
+                ) : null}
+              </div>
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-(--color-surface) to-transparent" />
+            </div>
+            <p className="mt-4 text-xs text-(--color-muted)">
+              — {tafsirData.source_name}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-(--color-muted)">
+            {isAr
+              ? "التفسير غير متاح لهذه الآية حالياً."
+              : "Tafsir not yet available for this verse."}
+          </p>
         )}
       </div>
 

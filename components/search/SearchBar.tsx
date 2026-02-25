@@ -78,6 +78,8 @@ export default function SearchBar({
     params.set("q", q);
     const type = searchParams.get("type");
     if (type && type !== "all") params.set("type", type);
+    searchParams.getAll("collection").forEach((c) => params.append("collection", c));
+    searchParams.getAll("tafsir").forEach((t) => params.append("tafsir", t));
     return `/${locale}/search?${params.toString()}`;
   }
 

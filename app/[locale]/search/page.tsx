@@ -7,8 +7,12 @@ import Pagination from "@/components/ui/Pagination";
 import EmailCapture from "@/components/ui/EmailCapture";
 import QuranResultCard from "@/components/results/QuranResultCard";
 import HadithResultCard from "@/components/results/HadithResultCard";
+import TafsirResultCard from "@/components/results/TafsirResultCard";
 import { searchQuran } from "@/lib/quran";
 import { searchHadiths } from "@/lib/hadith";
+import { searchTafsir } from "@/lib/tafsir";
+import type { TafsirResult } from "@/lib/tafsir";
+import { getDefaultTranslation } from "@/lib/translations";
 import type { Locale } from "@/lib/types";
 
 const PAGE_SIZE = 10;
@@ -23,7 +27,9 @@ interface SearchPageProps {
     q?: string;
     type?: string;
     grade?: string | string[];
+    collection?: string | string[];
     page?: string;
+    translation?: string;
   }>;
 }
 
@@ -32,29 +38,34 @@ async function SearchResults({
   locale,
   type,
   page,
+  translation,
+  collections,
   buildHref,
 }: {
   query: string;
   locale: string;
   type: string;
   page: number;
+  translation: string;
+  collections: string[];
   buildHref: (page: number) => string;
 }) {
   const isAr = locale === "ar";
 
   let allQuran: Awaited<ReturnType<typeof searchQuran>> = [];
   let allHadith: Awaited<ReturnType<typeof searchHadiths>> = [];
+  let allTafsir: TafsirResult[] = [];
   let fetchFailed = false;
 
   try {
-    [allQuran, allHadith] = await Promise.all([
-      type === "hadith" ? Promise.resolve([]) : searchQuran(query),
-      type === "quran" ? Promise.resolve([]) : searchHadiths(query),
+    [allQuran, allHadith, allTafsir] = await Promise.all([
+      type === "hadith" || type === "tafsir" ? Promise.resolve([]) : searchQuran(query, translation),
+      type === "quran" || type === "tafsir" ? Promise.resolve([]) : searchHadiths(query, collections.length ? collections : undefined),
+      type === "quran" || type === "hadith" ? Promise.resolve([]) : searchTafsir(query),
     ]);
   } catch {
     fetchFailed = true;
   }
-  
 
   if (fetchFailed) {
     return (
@@ -72,14 +83,16 @@ async function SearchResults({
     );
   }
 
-  // Merge into a tagged list, Quran first
+  // Merge into a tagged list, Quran first, then Hadith, then Tafsir
   type Tagged =
     | { kind: "quran"; item: (typeof allQuran)[number] }
-    | { kind: "hadith"; item: (typeof allHadith)[number] };
+    | { kind: "hadith"; item: (typeof allHadith)[number] }
+    | { kind: "tafsir"; item: TafsirResult };
 
   const all: Tagged[] = [
     ...allQuran.map((item) => ({ kind: "quran" as const, item })),
     ...allHadith.map((item) => ({ kind: "hadith" as const, item })),
+    ...allTafsir.map((item) => ({ kind: "tafsir" as const, item })),
   ];
 
   const totalResults = all.length;
@@ -89,6 +102,7 @@ async function SearchResults({
 
   const pageQuran = pageItems.filter((r) => r.kind === "quran").map((r) => r.item as (typeof allQuran)[number]);
   const pageHadith = pageItems.filter((r) => r.kind === "hadith").map((r) => r.item as (typeof allHadith)[number]);
+  const pageTafsir = pageItems.filter((r) => r.kind === "tafsir").map((r) => r.item as TafsirResult);
 
   if (totalResults === 0) {
     return (
@@ -108,12 +122,30 @@ async function SearchResults({
 
   return (
     <div>
-      {/* Result count */}
-      <p className="mb-5 text-sm text-(--color-muted)">
-        {isAr
-          ? `${totalResults} نتيجة — الصفحة ${safePage} من ${totalPages}`
-          : `${totalResults} results — page ${safePage} of ${totalPages}`}
-      </p>
+      {/* Query summary + result count */}
+      {(() => {
+        const filterLabels: Record<string, { en: string; ar: string }> = {
+          all: { en: "All", ar: "الكل" },
+          quran: { en: "Quran", ar: "القرآن" },
+          hadith: { en: "Hadith", ar: "الحديث" },
+          tafsir: { en: "Tafsir", ar: "التفسير" },
+        };
+        const label = filterLabels[type] ?? filterLabels.all;
+        return (
+          <div className="mb-5 flex items-center justify-between">
+            <p className="text-xs text-(--color-muted)">
+              {isAr
+                ? `${totalResults} نتيجة — الصفحة ${safePage} من ${totalPages}`
+                : `${totalResults} results — page ${safePage} of ${totalPages}`}
+            </p>
+            <p className="text-sm font-medium text-(--color-foreground)">
+              {isAr
+                ? `نتائج "${query}" في ${label.ar}`
+                : `Results of "${query}" in ${label.en}`}
+            </p>
+          </div>
+        );
+      })()}
 
       <div className="space-y-8">
         {/* Quran results */}
@@ -159,6 +191,28 @@ async function SearchResults({
             </div>
           </section>
         )}
+
+        {/* Tafsir results */}
+        {pageTafsir.length > 0 && (
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-(--color-foreground)">
+              📚 {isAr ? "تفسير" : "Tafsir"}
+              <span className="rounded-full bg-(--color-surface) px-2.5 py-0.5 text-xs font-medium text-(--color-muted)">
+                {allTafsir.length}
+              </span>
+            </h2>
+            <div className="space-y-4">
+              {pageTafsir.map((result) => (
+                <TafsirResultCard
+                  key={`${result.surahNumber}-${result.verseNumber}-${result.source}`}
+                  result={result}
+                  locale={locale}
+                  query={query}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* Pagination */}
@@ -195,14 +249,18 @@ export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
   const { locale } = await params;
-  const { q: query = "", type = "all", page: pageParam = "1" } = await searchParams;
+  const { q: query = "", type = "all", page: pageParam = "1", translation: translationParam, collection: collectionParam } = await searchParams;
   const isAr = locale === "ar";
+  const translation = translationParam ?? getDefaultTranslation(locale);
   const page = Math.max(1, parseInt(pageParam, 10) || 1);
+  const collections = collectionParam ? (Array.isArray(collectionParam) ? collectionParam : [collectionParam]) : [];
 
   function buildHref(p: number) {
     const sp = new URLSearchParams();
     if (query) sp.set("q", query);
     if (type !== "all") sp.set("type", type);
+    if (translationParam) sp.set("translation", translationParam);
+    collections.forEach((c) => sp.append("collection", c));
     if (p > 1) sp.set("page", String(p));
     return `/${locale}/search?${sp.toString()}`;
   }
@@ -225,15 +283,15 @@ export default async function SearchPage({
         <div className="min-w-0 flex-1">
           {query ? (
             <Suspense fallback={<SearchResultsSkeleton />}>
-              <SearchResults query={query} locale={locale} type={type} page={page} buildHref={buildHref} />
+              <SearchResults query={query} locale={locale} type={type} page={page} translation={translation} collections={collections} buildHref={buildHref} />
             </Suspense>
           ) : (
             <div className="py-16 text-center">
               <div className="mb-3 text-4xl">☪</div>
               <p className="text-(--color-muted)">
                 {isAr
-                  ? "أدخل كلمة للبحث في القرآن والحديث"
-                  : "Enter a term to search Quran and Hadith"}
+                  ? "أدخل كلمة للبحث في القرآن والحديث والتفسير"
+                  : "Enter a term to search Quran, Hadith and Tafsir"}
               </p>
             </div>
           )}
