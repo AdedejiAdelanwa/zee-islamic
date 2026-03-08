@@ -13,6 +13,11 @@ import { searchQuran } from "@/lib/quran";
 import { searchHadiths } from "@/lib/hadith";
 import { searchTafsir } from "@/lib/tafsir";
 import type { TafsirResult } from "@/lib/tafsir";
+import { searchAI } from "@/lib/ai-search";
+import type { AISearchHit, VerseSearchResult, HadithSearchResult } from "@/lib/ai-search";
+import AIAnswerCard from "@/components/results/AIAnswerCard";
+import AIVerseResultCard from "@/components/results/AIVerseResultCard";
+import AIHadithResultCard from "@/components/results/AIHadithResultCard";
 import { getDefaultTranslation } from "@/lib/translations";
 import type { Locale } from "@/lib/types";
 
@@ -90,12 +95,14 @@ async function SearchResults({
   let allHadith: Awaited<ReturnType<typeof searchHadiths>> = [];
   let allTafsir: TafsirResult[] = [];
   let fetchFailed = false;
+  let aiResult: Awaited<ReturnType<typeof searchAI>> = null;
 
   try {
-    [allQuran, allHadith, allTafsir] = await Promise.all([
+    [allQuran, allHadith, allTafsir, aiResult] = await Promise.all([
       type === "hadith" || type === "tafsir" ? Promise.resolve([]) : searchQuran(query, translation),
       type === "quran" || type === "tafsir" ? Promise.resolve([]) : searchHadiths(query, collections.length ? collections : undefined),
       type === "quran" || type === "hadith" ? Promise.resolve([]) : searchTafsir(query),
+      page === 1 ? searchAI(query, locale, type === "tafsir" ? "all" : type as "all" | "quran" | "hadith") : Promise.resolve(null),
     ]);
   } catch {
     fetchFailed = true;
@@ -192,7 +199,11 @@ async function SearchResults({
   const pageHadith = pageItems.filter((r) => r.kind === "hadith").map((r) => r.item as (typeof allHadith)[number]);
   const pageTafsir = pageItems.filter((r) => r.kind === "tafsir").map((r) => r.item as TafsirResult);
 
-  if (totalResults === 0) {
+  // Use AI semantic hits on page 1 when available; fall back to keyword results
+  const aiHits = aiResult?.hits ?? [];
+  const useAiResults = page === 1 && aiHits.length > 0;
+
+  if (!useAiResults && totalResults === 0) {
     return (
       <div className="py-16 text-center">
         <div className="mb-3 text-4xl">🔍</div>
@@ -208,6 +219,74 @@ async function SearchResults({
     );
   }
 
+  // ── AI semantic results (page 1) ──────────────────────────────────────────
+  if (useAiResults) {
+    const aiVerses = aiHits.filter((h): h is AISearchHit & { content_type: "verse" } => h.content_type === "verse");
+    const aiHadiths = aiHits.filter((h): h is AISearchHit & { content_type: "hadith" } => h.content_type === "hadith");
+
+    return (
+      <div>
+        {aiResult?.answer_card && (
+          <AIAnswerCard card={aiResult.answer_card} locale={locale} />
+        )}
+
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs text-(--color-muted)">
+            {isAr
+              ? `${aiHits.length} نتيجة دلالية`
+              : `${aiHits.length} semantic results`}
+          </p>
+          <p className="text-sm font-medium text-(--color-foreground)">
+            {isAr ? `نتائج "${query}"` : `Results for "${query}"`}
+          </p>
+        </div>
+
+        <div className="space-y-8">
+          {aiVerses.length > 0 && (
+            <section>
+              <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-(--color-foreground)">
+                📖 {isAr ? "آيات قرآنية" : "Quranic Verses"}
+                <span className="rounded-full bg-(--color-surface) px-2.5 py-0.5 text-xs font-medium text-(--color-muted)">
+                  {aiVerses.length}
+                </span>
+              </h2>
+              <div className="space-y-4">
+                {aiVerses.map((hit) => (
+                  <AIVerseResultCard
+                    key={hit.result ? `${(hit.result as VerseSearchResult).surah_number}-${(hit.result as VerseSearchResult).verse_number}` : hit.rrf_score}
+                    result={hit.result as VerseSearchResult}
+                    locale={locale}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {aiHadiths.length > 0 && (
+            <section>
+              <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-(--color-foreground)">
+                📜 {isAr ? "أحاديث" : "Hadiths"}
+                <span className="rounded-full bg-(--color-surface) px-2.5 py-0.5 text-xs font-medium text-(--color-muted)">
+                  {aiHadiths.length}
+                </span>
+              </h2>
+              <div className="space-y-4">
+                {aiHadiths.map((hit) => (
+                  <AIHadithResultCard
+                    key={(hit.result as HadithSearchResult).id}
+                    result={hit.result as HadithSearchResult}
+                    locale={locale}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Keyword results (page 2+ or AI unavailable) ───────────────────────────
   return (
     <div>
       {/* Result count */}
@@ -230,7 +309,6 @@ async function SearchResults({
             const isActive = activeShown.includes(kind);
             const count = countFor(kind);
             const label = isAr ? cfg.ar : cfg.en;
-            // Prevent deselecting the last active type
             const canToggle = isActive ? activeShown.length > 1 : true;
 
             if (!canToggle) {
