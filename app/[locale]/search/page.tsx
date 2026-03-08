@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { X, Plus } from "lucide-react";
 import SearchBar from "@/components/search/SearchBar";
 import FilterBar from "@/components/search/FilterBar";
 import SearchSidebar from "@/components/search/SearchSidebar";
@@ -21,6 +22,34 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
+// Content-type pill config — defined at module level (no runtime deps)
+const CONTENT_TYPES = ["quran", "hadith", "tafsir"] as const;
+type ContentType = (typeof CONTENT_TYPES)[number];
+
+const TYPE_CONFIG: Record<
+  ContentType,
+  { en: string; ar: string; activeClass: string }
+> = {
+  quran: {
+    en: "Quran",
+    ar: "القرآن",
+    activeClass:
+      "bg-(--color-primary) text-white border-(--color-primary)",
+  },
+  hadith: {
+    en: "Hadith",
+    ar: "الحديث",
+    activeClass:
+      "bg-(--color-semantic-green) text-white border-(--color-semantic-green)",
+  },
+  tafsir: {
+    en: "Tafsir",
+    ar: "التفسير",
+    activeClass:
+      "bg-(--color-accent) text-white border-(--color-accent)",
+  },
+};
+
 interface SearchPageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
@@ -30,6 +59,7 @@ interface SearchPageProps {
     collection?: string | string[];
     page?: string;
     translation?: string;
+    show?: string | string[];
   }>;
 }
 
@@ -40,6 +70,8 @@ async function SearchResults({
   page,
   translation,
   collections,
+  grades,
+  show,
   buildHref,
 }: {
   query: string;
@@ -48,6 +80,8 @@ async function SearchResults({
   page: number;
   translation: string;
   collections: string[];
+  grades: string[];
+  show: string[];
   buildHref: (page: number) => string;
 }) {
   const isAr = locale === "ar";
@@ -83,7 +117,30 @@ async function SearchResults({
     );
   }
 
-  // Merge into a tagged list, Quran first, then Hadith, then Tafsir
+  // Count per type
+  const countFor = (kind: ContentType) =>
+    kind === "quran"
+      ? allQuran.length
+      : kind === "hadith"
+        ? allHadith.length
+        : allTafsir.length;
+
+  // Types that actually returned results
+  const typesWithResults = CONTENT_TYPES.filter((t) => countFor(t) > 0);
+
+  // Which types are currently visible:
+  // - if a specific type was hard-selected (type=quran etc.), no pills needed
+  // - if show param is set, use it; otherwise default to all types with results
+  const activeShown: ContentType[] =
+    type !== "all"
+      ? [type as ContentType]
+      : show.length > 0
+        ? show.filter((s): s is ContentType =>
+            CONTENT_TYPES.includes(s as ContentType),
+          )
+        : [...typesWithResults];
+
+  // Merge into a tagged list then filter to active types
   type Tagged =
     | { kind: "quran"; item: (typeof allQuran)[number] }
     | { kind: "hadith"; item: (typeof allHadith)[number] }
@@ -95,10 +152,41 @@ async function SearchResults({
     ...allTafsir.map((item) => ({ kind: "tafsir" as const, item })),
   ];
 
-  const totalResults = all.length;
+  // When type="all", honour the show selection; otherwise the fetch already filtered
+  const filtered =
+    type !== "all"
+      ? all
+      : all.filter((r) => activeShown.includes(r.kind as ContentType));
+
+  // Show pills only when type="all" and 2+ content types returned results
+  const showTypePills = type === "all" && typesWithResults.length > 1;
+
+  // Build href that toggles a type in/out of the show param
+  function buildShowToggleHref(kind: ContentType): string {
+    const sp = new URLSearchParams();
+    if (query) sp.set("q", query);
+    // type stays "all" — no type param needed
+    if (translation) sp.set("translation", translation);
+    collections.forEach((c) => sp.append("collection", c));
+    grades.forEach((g) => sp.append("grade", g));
+
+    const isActive = activeShown.includes(kind);
+    const newShow = isActive
+      ? activeShown.filter((t) => t !== kind)
+      : ([...activeShown, kind] as ContentType[]);
+
+    // If newShow = every type that has results → omit show param (clean URL)
+    const isAll = typesWithResults.every((t) => newShow.includes(t));
+    if (!isAll) newShow.forEach((t) => sp.append("show", t));
+
+    // page resets to 1 on filter change
+    return `/${locale}/search?${sp.toString()}`;
+  }
+
+  const totalResults = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), totalPages);
-  const pageItems = all.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const pageQuran = pageItems.filter((r) => r.kind === "quran").map((r) => r.item as (typeof allQuran)[number]);
   const pageHadith = pageItems.filter((r) => r.kind === "hadith").map((r) => r.item as (typeof allHadith)[number]);
@@ -122,30 +210,61 @@ async function SearchResults({
 
   return (
     <div>
-      {/* Query summary + result count */}
-      {(() => {
-        const filterLabels: Record<string, { en: string; ar: string }> = {
-          all: { en: "All", ar: "الكل" },
-          quran: { en: "Quran", ar: "القرآن" },
-          hadith: { en: "Hadith", ar: "الحديث" },
-          tafsir: { en: "Tafsir", ar: "التفسير" },
-        };
-        const label = filterLabels[type] ?? filterLabels.all;
-        return (
-          <div className="mb-5 flex items-center justify-between">
-            <p className="text-xs text-(--color-muted)">
-              {isAr
-                ? `${totalResults} نتيجة — الصفحة ${safePage} من ${totalPages}`
-                : `${totalResults} results — page ${safePage} of ${totalPages}`}
-            </p>
-            <p className="text-sm font-medium text-(--color-foreground)">
-              {isAr
-                ? `نتائج "${query}" في ${label.ar}`
-                : `Results of "${query}" in ${label.en}`}
-            </p>
-          </div>
-        );
-      })()}
+      {/* Result count */}
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs text-(--color-muted)">
+          {isAr
+            ? `${totalResults} نتيجة — الصفحة ${safePage} من ${totalPages}`
+            : `${totalResults} results — page ${safePage} of ${totalPages}`}
+        </p>
+        <p className="text-sm font-medium text-(--color-foreground)">
+          {isAr ? `نتائج "${query}"` : `Results for "${query}"`}
+        </p>
+      </div>
+
+      {/* Content-type pills — only when type=all with 2+ types having results */}
+      {showTypePills && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {typesWithResults.map((kind) => {
+            const cfg = TYPE_CONFIG[kind];
+            const isActive = activeShown.includes(kind);
+            const count = countFor(kind);
+            const label = isAr ? cfg.ar : cfg.en;
+            // Prevent deselecting the last active type
+            const canToggle = isActive ? activeShown.length > 1 : true;
+
+            if (!canToggle) {
+              return (
+                <span
+                  key={kind}
+                  className={`flex cursor-default items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${cfg.activeClass}`}
+                >
+                  {label}
+                  <span className="opacity-60">·</span>
+                  <span>{count}</span>
+                </span>
+              );
+            }
+
+            return (
+              <a
+                key={kind}
+                href={buildShowToggleHref(kind)}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-opacity hover:opacity-75 ${
+                  isActive
+                    ? cfg.activeClass
+                    : "border-(--color-border) bg-(--color-surface) text-(--color-muted)"
+                }`}
+              >
+                {label}
+                <span className="opacity-60">·</span>
+                <span>{count}</span>
+                {isActive ? <X size={10} /> : <Plus size={10} />}
+              </a>
+            );
+          })}
+        </div>
+      )}
 
       <div className="space-y-8">
         {/* Quran results */}
@@ -231,7 +350,7 @@ function SearchResultsSkeleton() {
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div
-          key={i}
+          key={`skeleton-${i}`}
           className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 shadow-sm"
         >
           <div className="mb-3 h-3 w-20 animate-pulse rounded bg-gray-200" />
@@ -249,11 +368,28 @@ export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
   const { locale } = await params;
-  const { q: query = "", type = "all", page: pageParam = "1", translation: translationParam, collection: collectionParam } = await searchParams;
+  const {
+    q: query = "",
+    type = "all",
+    page: pageParam = "1",
+    translation: translationParam,
+    collection: collectionParam,
+    grade: gradeParam,
+    show: showParam,
+  } = await searchParams;
+
   const isAr = locale === "ar";
   const translation = translationParam ?? getDefaultTranslation(locale);
   const page = Math.max(1, parseInt(pageParam, 10) || 1);
-  const collections = collectionParam ? (Array.isArray(collectionParam) ? collectionParam : [collectionParam]) : [];
+  const collections = collectionParam
+    ? Array.isArray(collectionParam) ? collectionParam : [collectionParam]
+    : [];
+  const grades = gradeParam
+    ? Array.isArray(gradeParam) ? gradeParam : [gradeParam]
+    : [];
+  const show = showParam
+    ? Array.isArray(showParam) ? showParam : [showParam]
+    : [];
 
   function buildHref(p: number) {
     const sp = new URLSearchParams();
@@ -261,6 +397,7 @@ export default async function SearchPage({
     if (type !== "all") sp.set("type", type);
     if (translationParam) sp.set("translation", translationParam);
     collections.forEach((c) => sp.append("collection", c));
+    show.forEach((s) => sp.append("show", s)); // preserve show selection across pages
     if (p > 1) sp.set("page", String(p));
     return `/${locale}/search?${sp.toString()}`;
   }
@@ -283,7 +420,17 @@ export default async function SearchPage({
         <div className="min-w-0 flex-1">
           {query ? (
             <Suspense fallback={<SearchResultsSkeleton />}>
-              <SearchResults query={query} locale={locale} type={type} page={page} translation={translation} collections={collections} buildHref={buildHref} />
+              <SearchResults
+                query={query}
+                locale={locale}
+                type={type}
+                page={page}
+                translation={translation}
+                collections={collections}
+                grades={grades}
+                show={show}
+                buildHref={buildHref}
+              />
             </Suspense>
           ) : (
             <div className="py-16 text-center">

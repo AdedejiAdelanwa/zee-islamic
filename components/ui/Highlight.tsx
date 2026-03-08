@@ -35,7 +35,7 @@ export default function Highlight({ text, query, className }: HighlightProps) {
       {parts.map((part, i) =>
         i % 2 === 1 ? (
           <mark
-            key={i}
+            key={`${i}-${part}`}
             className="rounded-sm bg-(--color-accent-light) px-0.5 text-(--color-primary) not-italic"
           >
             {part}

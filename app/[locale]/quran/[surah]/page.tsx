@@ -7,6 +7,7 @@ import TranslationSwitcher from "@/components/verse/TranslationSwitcher";
 import { getSurah } from "@/lib/quran";
 import { TRANSLATIONS, getDefaultTranslation, getTranslationDirection } from "@/lib/translations";
 import { buildAlternates } from "@/lib/alternates";
+import { t, isRtl } from "@/lib/ui";
 
 interface SurahPageProps {
   params: Promise<{ locale: string; surah: string }>;
@@ -21,20 +22,20 @@ export async function generateMetadata({
 }: SurahPageProps): Promise<Metadata> {
   try {
     const { locale, surah } = await params;
-    const { translation = "en.sahih" } = await searchParams;
+    const { translation = getDefaultTranslation(locale) } = await searchParams;
     const surahNum = Number(surah);
     if (isNaN(surahNum) || surahNum < 1 || surahNum > 114) return { title: "Quran — ZEE" };
 
     const { arabic } = await getSurah(surahNum, translation);
-    const isAr = locale === "ar";
+    const rtl = isRtl(locale);
 
     return {
-      title: isAr
-        ? `سورة ${arabic.name} — القرآن الكريم`
-        : `${arabic.englishName} — Quran | ZEE`,
-      description: isAr
-        ? `اقرأ سورة ${arabic.name} كاملةً — ${arabic.numberOfAyahs} آية`
-        : `Read ${arabic.englishName} (${arabic.englishNameTranslation}) — ${arabic.numberOfAyahs} verses`,
+      title: rtl
+        ? `سورة ${arabic.name} — ${t(locale, "quranFull")}`
+        : `${arabic.englishName} — ${t(locale, "quran")} | ZEE`,
+      description: rtl
+        ? `اقرأ سورة ${arabic.name} كاملةً — ${arabic.numberOfAyahs} ${t(locale, "verses")}`
+        : `Read ${arabic.englishName} (${arabic.englishNameTranslation}) — ${arabic.numberOfAyahs} ${t(locale, "verses")}`,
       alternates: buildAlternates(locale, `quran/${surah}`),
     };
   } catch {
@@ -45,7 +46,7 @@ export async function generateMetadata({
 export default async function SurahPage({ params, searchParams }: SurahPageProps) {
   const { locale, surah } = await params;
   const { translation = getDefaultTranslation(locale) } = await searchParams;
-  const isAr = locale === "ar";
+  const rtl = isRtl(locale);
 
   const surahNum = Number(surah);
   if (isNaN(surahNum) || surahNum < 1 || surahNum > 114) notFound();
@@ -58,19 +59,13 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
   }
 
   const { arabic, translation: translationSurah } = surahData;
-  const translationLabel =
-    TRANSLATIONS.find((t) => t.identifier === translation)?.name ?? translation;
   const translationDir = getTranslationDirection(translation);
 
-  // Bismillah is shown for all surahs except Al-Fatiha (1, has it as verse 1)
-  // and At-Tawbah (9, revealed without it)
+  // Bismillah is shown for all surahs except Al-Fatiha (1) and At-Tawbah (9)
   const showBismillah = surahNum !== 1 && surahNum !== 9;
 
-  const revelationLabel = isAr
-    ? arabic.revelationType === "Meccan"
-      ? "مكية"
-      : "مدنية"
-    : arabic.revelationType;
+  const revelationLabel =
+    arabic.revelationType === "Meccan" ? t(locale, "meccan") : t(locale, "medinan");
 
   const verseItems = arabic.ayahs.map((ayah, i) => ({
     number: ayah.numberInSurah,
@@ -81,18 +76,15 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6" dir={isAr ? "rtl" : "ltr"}>
+    <div className="mx-auto max-w-6xl px-4 py-6" dir={rtl ? "rtl" : "ltr"}>
       {/* Breadcrumb */}
       <Breadcrumb
         locale={locale}
         className="mb-3"
         items={[
-          { label: isAr ? "الرئيسية" : "Home", href: `/${locale}/` },
-          {
-            label: isAr ? "القرآن" : "Quran",
-            href: `/${locale}/quran`,
-          },
-          { label: isAr ? arabic.name : arabic.englishName },
+          { label: t(locale, "home"), href: `/${locale}/` },
+          { label: t(locale, "quran"), href: `/${locale}/quran` },
+          { label: rtl ? arabic.name : arabic.englishName },
         ]}
       />
 
@@ -112,10 +104,10 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
             {revelationLabel}
           </span>
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {arabic.numberOfAyahs} {isAr ? "آية" : "verses"}
+            {arabic.numberOfAyahs} {t(locale, "verses")}
           </span>
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {isAr ? `السورة ${surahNum}` : `Surah ${surahNum}`}
+            {t(locale, "surahLabel")} {surahNum}
           </span>
         </div>
       </div>
@@ -137,7 +129,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
         {/* Sidebar — desktop only, sticky */}
         <aside className="hidden w-48 shrink-0 self-start sticky top-20 lg:block">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
-            {isAr ? "الآيات" : "Verses"}
+            {t(locale, "verses")}
           </p>
           <div className="max-h-[calc(100vh-9rem)] overflow-y-auto rounded-xl border border-(--color-border) bg-(--color-surface)">
             {verseItems.map((v) => (
@@ -150,7 +142,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
                   {v.number}
                 </span>
                 <span className="truncate text-xs text-(--color-muted)">
-                  {isAr ? `آية ${v.number}` : `Verse ${v.number}`}
+                  {t(locale, "verseLabel")} {v.number}
                 </span>
               </a>
             ))}
@@ -186,13 +178,13 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
                     {v.number}
                   </span>
                   <div className="flex items-center gap-3 text-xs text-(--color-muted)">
-                    <span>{isAr ? `الجزء ${v.juz}` : `Juz ${v.juz}`}</span>
-                    <span>{isAr ? `الصفحة ${v.page}` : `Page ${v.page}`}</span>
+                    <span>{t(locale, "juz")} {v.juz}</span>
+                    <span>{t(locale, "page")} {v.page}</span>
                     <Link
                       href={`/${locale}/quran/${surahNum}/${v.number}?translation=${translation}`}
                       className="font-medium text-(--color-primary) hover:underline"
                     >
-                      {isAr ? "← عرض" : "View →"}
+                      {t(locale, "view")}
                     </Link>
                   </div>
                 </div>
@@ -224,8 +216,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
                 href={`/${locale}/quran/${surahNum - 1}`}
                 className="flex items-center gap-2 rounded-full border border-(--color-border) px-4 py-2 text-sm font-medium transition-colors hover:border-(--color-primary) hover:text-(--color-primary)"
               >
-                {isAr ? "→" : "←"}{" "}
-                {isAr ? "السورة السابقة" : "Previous Surah"}
+                {rtl ? "→" : "←"} {t(locale, "previousSurah")}
               </Link>
             ) : (
               <div />
@@ -235,8 +226,7 @@ export default async function SurahPage({ params, searchParams }: SurahPageProps
                 href={`/${locale}/quran/${surahNum + 1}`}
                 className="flex items-center gap-2 rounded-full border border-(--color-border) px-4 py-2 text-sm font-medium transition-colors hover:border-(--color-primary) hover:text-(--color-primary)"
               >
-                {isAr ? "السورة التالية" : "Next Surah"}{" "}
-                {isAr ? "←" : "→"}
+                {t(locale, "nextSurah")} {rtl ? "←" : "→"}
               </Link>
             ) : (
               <div />

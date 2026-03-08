@@ -1,12 +1,20 @@
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
-import { getAyah } from "@/lib/quran";
+import { getHadith, HADITH_COLLECTIONS } from "@/lib/hadith";
 
 export const runtime = "edge";
 
 /** Strip every character outside printable ASCII so satori never tries to download a non-Latin font */
 function ascii(str: string): string {
   return str.replace(/[^\x20-\x7E]/g, "").trim();
+}
+
+function gradeColor(grade: string): string {
+  const g = grade.toLowerCase();
+  if (g.includes("sahih")) return "#16a34a";
+  if (g.includes("hasan")) return "#ca8a04";
+  if (g.includes("da") || g.includes("weak")) return "#dc2626";
+  return "#6b7280";
 }
 
 function fallback() {
@@ -35,22 +43,29 @@ function fallback() {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ locale: string; surah: string; verse: string }> }
+  { params }: { params: Promise<{ locale: string; collection: string; number: string }> }
 ) {
-  const { surah, verse } = await params;
+  const { collection, number } = await params;
 
-  let translationText = "";
-  let surahName = `Surah ${surah}`;
-  let verseRef = `${surah}:${verse}`;
+  let hadithText = "";
+  let collectionName =
+    ascii(HADITH_COLLECTIONS.find((c) => c.slug === collection)?.name ?? collection);
+  let ref = collectionName + " - Hadith #" + number;
+  let grade = "";
 
   try {
-    const ayah = await getAyah(Number(surah), Number(verse));
-    translationText = ascii(ayah.translation.text?.slice(0, 220) ?? "");
-    surahName = ascii(ayah.arabic.surah?.englishName ?? surahName);
-    verseRef = `${ayah.surahNumber}:${ayah.verseNumber}`;
+    const hadith = await getHadith(collection, number);
+    if (hadith) {
+      hadithText = ascii(hadith.hadithEnglish?.slice(0, 280) ?? "");
+      collectionName = ascii(hadith.book?.bookName ?? collectionName);
+      ref = collectionName + " - Hadith #" + number;
+      grade = ascii(hadith.grades?.[0]?.grade ?? "");
+    }
   } catch {
     // Use defaults
   }
+
+  const badgeColor = grade ? gradeColor(grade) : "";
 
   try {
     return new ImageResponse(
@@ -97,33 +112,54 @@ export async function GET(
             }}
           />
 
-          {/* Verse label */}
+          {/* Grade badge - top right */}
+          {grade && (
+            <div
+              style={{
+                position: "absolute",
+                top: "40px",
+                right: "48px",
+                background: badgeColor,
+                color: "#ffffff",
+                fontSize: "15px",
+                fontWeight: "bold",
+                borderRadius: "999px",
+                padding: "6px 20px",
+                letterSpacing: "0.04em",
+                textTransform: "capitalize",
+              }}
+            >
+              {grade}
+            </div>
+          )}
+
+          {/* Collection name */}
           <div
             style={{
               color: "#C9A227",
-              fontSize: "16px",
+              fontSize: "17px",
               fontWeight: "bold",
-              letterSpacing: "0.12em",
+              letterSpacing: "0.08em",
               textTransform: "uppercase",
-              marginBottom: "28px",
+              marginBottom: "20px",
             }}
           >
-            {"Quran - " + verseRef}
+            {collectionName}
           </div>
 
-          {/* Translation */}
-          {translationText && (
+          {/* Hadith text */}
+          {hadithText && (
             <div
               style={{
                 color: "rgba(255,255,255,0.92)",
-                fontSize: translationText.length > 160 ? "26px" : "32px",
+                fontSize: hadithText.length > 180 ? "22px" : "26px",
                 lineHeight: "1.65",
                 textAlign: "left",
-                maxWidth: "900px",
-                marginBottom: "40px",
+                maxWidth: "960px",
+                marginBottom: "36px",
               }}
             >
-              {"\"" + translationText + (translationText.length >= 220 ? "..." : "") + "\""}
+              {"\"" + hadithText + (hadithText.length >= 280 ? "..." : "") + "\""}
             </div>
           )}
 
@@ -131,13 +167,13 @@ export async function GET(
           <div
             style={{
               color: "rgba(255,255,255,0.75)",
-              fontSize: "17px",
+              fontSize: "16px",
               border: "1px solid rgba(255,255,255,0.3)",
               borderRadius: "999px",
               padding: "6px 22px",
             }}
           >
-            {surahName + " - " + verseRef}
+            {ref}
           </div>
 
           {/* Bottom-right ZEE lockup */}

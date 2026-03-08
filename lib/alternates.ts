@@ -11,21 +11,23 @@
  *   <link rel="alternate" hreflang="x-default" href="https://zee.app/en/quran/1/1" />
  */
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://zee.yourdomain.com";
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://zee.app";
+
+const BASE_URL = SITE_URL;
+
+const ALL_LOCALES = [
+  "en", "ar", "ur", "fa", "fr", "de", "tr", "id", "ru", "es",
+  "bn", "ms", "zh", "bs", "it", "pt", "sv", "nl", "ja", "ko", "ha", "sw",
+];
 
 export function buildAlternates(locale: string, path = "") {
   const segment = path ? `/${path}` : "";
-  const enUrl = `${BASE_URL}/en${segment}`;
-  const arUrl = `${BASE_URL}/ar${segment}`;
-  const canonical = locale === "ar" ? arUrl : enUrl;
-
-  return {
-    canonical,
-    languages: {
-      en: enUrl,
-      ar: arUrl,
-      "x-default": enUrl,
-    },
-  };
+  const languages: Record<string, string> = {};
+  for (const loc of ALL_LOCALES) {
+    languages[loc] = `${BASE_URL}/${loc}${segment}`;
+  }
+  languages["x-default"] = `${BASE_URL}/en${segment}`;
+  const canonical = languages[locale] ?? languages["en"];
+  return { canonical, languages };
 }

@@ -2,10 +2,11 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { t, isRtl } from "@/lib/ui";
 
 const SOURCES = [
-  { key: "ibn-kathir", labelEn: "Ibn Kathir", labelAr: "ابن كثير" },
-  { key: "al-tabari", labelEn: "Al-Tabari", labelAr: "الطبري" },
+  { key: "ibn-kathir", label: "Ibn Kathir" },
+  { key: "al-tabari", label: "Al-Tabari" },
 ];
 
 interface TafsirSourceSwitcherProps {
@@ -20,7 +21,7 @@ export default function TafsirSourceSwitcher({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isAr = locale === "ar";
+  const rtl = isRtl(locale);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -29,9 +30,9 @@ export default function TafsirSourceSwitcher({
   }
 
   return (
-    <div className="relative inline-block" dir={isAr ? "rtl" : "ltr"}>
+    <div className="relative inline-block" dir={rtl ? "rtl" : "ltr"}>
       <label className="sr-only">
-        {isAr ? "اختر التفسير" : "Select tafsir source"}
+        {t(locale, "selectTafsir")}
       </label>
       <div className="relative">
         <select
@@ -41,7 +42,7 @@ export default function TafsirSourceSwitcher({
         >
           {SOURCES.map((s) => (
             <option key={s.key} value={s.key}>
-              {isAr ? s.labelAr : s.labelEn}
+              {s.label}
             </option>
           ))}
         </select>

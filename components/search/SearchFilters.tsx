@@ -18,16 +18,14 @@ const SOURCES: { value: Source; labelEn: string; labelAr: string }[] = [
 const HADITH_COLLECTIONS = [
   { value: "bukhari", labelEn: "Sahih Bukhari", labelAr: "صحيح البخاري" },
   { value: "muslim", labelEn: "Sahih Muslim", labelAr: "صحيح مسلم" },
-  { value: "abu-dawud", labelEn: "Abu Dawud", labelAr: "أبو داود" },
+  { value: "abudawud", labelEn: "Abu Dawud", labelAr: "أبو داود" },
   { value: "tirmidhi", labelEn: "Tirmidhi", labelAr: "الترمذي" },
-  { value: "ibn-majah", labelEn: "Ibn Majah", labelAr: "ابن ماجه" },
-  { value: "nasai", labelEn: "Nasa'i", labelAr: "النسائي" },
-  { value: "muwatta", labelEn: "Muwatta", labelAr: "الموطأ" },
+  { value: "ibnmajah", labelEn: "Ibn Majah", labelAr: "ابن ماجه" },
 ];
 
 const TAFSIR_SOURCES = [
   { value: "ibn-kathir", labelEn: "Ibn Kathir", labelAr: "ابن كثير" },
-  { value: "tabari", labelEn: "Al-Tabari", labelAr: "الطبري" },
+  { value: "al-tabari", labelEn: "Al-Tabari", labelAr: "الطبري" },
 ];
 
 const ALL_COLLECTIONS = HADITH_COLLECTIONS.map((c) => c.value);

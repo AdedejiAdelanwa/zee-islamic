@@ -93,8 +93,31 @@ export const TRANSLATIONS: Translation[] = [
 
 /** Default translation identifier based on the UI locale. */
 export function getDefaultTranslation(locale: string): string {
-  if (locale === "ar") return "ur.maududi"; // Arabic-locale users often prefer Urdu
-  return "en.sahih";
+  const defaults: Record<string, string> = {
+    en: "en.sahih",
+    ar: "ur.maududi",
+    ur: "ur.maududi",
+    fa: "fa.makarem",
+    fr: "fr.hamidullah",
+    de: "de.bubenheim",
+    tr: "tr.diyanet",
+    id: "id.indonesian",
+    ru: "ru.kuliev",
+    es: "es.cortes",
+    bn: "bn.bengali",
+    ms: "ms.basmeih",
+    zh: "zh.jian",
+    bs: "bs.korkut",
+    it: "it.piccardo",
+    pt: "pt.elhayek",
+    sv: "sv.bernstrom",
+    nl: "nl.keyzer",
+    ja: "ja.japanese",
+    ko: "ko.korean",
+    ha: "ha.gumi",
+    sw: "sw.barwani",
+  };
+  return defaults[locale] ?? "en.sahih";
 }
 
 /** Look up a translation's text direction by identifier. Falls back to "ltr". */

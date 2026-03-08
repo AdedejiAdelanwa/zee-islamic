@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import SearchBar from "@/components/search/SearchBar";
 import SearchFilters from "@/components/search/SearchFilters";
 import TrendingSearches from "@/components/ui/TrendingSearches";
@@ -27,6 +28,7 @@ const INFO_CATEGORIES = [
     titleAr: "القرآن الكريم",
     descEn: "Search 6,236 verses with translations and tafsir.",
     descAr: "ابحث في ٦٢٣٦ آية مع التفسير والترجمة.",
+    path: "quran",
   },
   {
     emoji: "📜",
@@ -35,6 +37,7 @@ const INFO_CATEGORIES = [
     descEn:
       "Access authentic hadith from major collections with grade information.",
     descAr: "تصفح الأحاديث الصحيحة من المجموعات الكبرى مع تصنيف الدرجة.",
+    path: "hadith",
   },
   {
     emoji: "🔍",
@@ -43,6 +46,7 @@ const INFO_CATEGORIES = [
     descEn:
       "Search in English or Arabic across all Islamic texts simultaneously.",
     descAr: "ابحث بالعربية أو الإنجليزية في جميع النصوص الإسلامية.",
+    path: null,
   },
 ] as const;
 
@@ -105,23 +109,38 @@ export default async function HomePage({
               : "Everything you need, in one place"}
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {INFO_CATEGORIES.map((feature) => (
-              <div
-                key={feature.titleEn}
-                className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 text-center shadow-sm"
-              >
-                <div className="mb-3 text-3xl">{feature.emoji}</div>
-                <h3 className="mb-2 font-semibold text-(--color-foreground)">
-                  {isAr ? feature.titleAr : feature.titleEn}
-                </h3>
-                <p
-                  className="text-sm text-(--color-muted)"
-                  dir={isAr ? "rtl" : "ltr"}
+            {INFO_CATEGORIES.map((feature) => {
+              const cardClass =
+                "rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 text-center shadow-sm" +
+                (feature.path ? " transition-colors hover:border-(--color-primary)" : "");
+              const inner = (
+                <>
+                  <div className="mb-3 text-3xl">{feature.emoji}</div>
+                  <h3 className="mb-2 font-semibold text-(--color-foreground)">
+                    {isAr ? feature.titleAr : feature.titleEn}
+                  </h3>
+                  <p
+                    className="text-sm text-(--color-muted)"
+                    dir={isAr ? "rtl" : "ltr"}
+                  >
+                    {isAr ? feature.descAr : feature.descEn}
+                  </p>
+                </>
+              );
+              return feature.path ? (
+                <Link
+                  key={feature.titleEn}
+                  href={`/${locale}/${feature.path}`}
+                  className={cardClass}
                 >
-                  {isAr ? feature.descAr : feature.descEn}
-                </p>
-              </div>
-            ))}
+                  {inner}
+                </Link>
+              ) : (
+                <div key={feature.titleEn} className={cardClass}>
+                  {inner}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

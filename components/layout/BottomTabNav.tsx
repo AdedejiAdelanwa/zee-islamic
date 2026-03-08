@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, BookOpen, Bookmark, User } from "lucide-react";
+import { Search, BookOpen, ScrollText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TAB_CONFIG = [
-  { labelEn: "Search",    labelAr: "بحث",        icon: Search,   path: "search",    match: "/search" },
-  { labelEn: "Topics",    labelAr: "مواضيع",     icon: BookOpen, path: "",          match: null },
-  { labelEn: "Bookmarks", labelAr: "المحفوظات",  icon: Bookmark, path: "bookmarks", match: "/bookmarks" },
-  { labelEn: "Profile",   labelAr: "الملف",      icon: User,     path: "profile",   match: "/profile" },
+  { labelEn: "Search", labelAr: "بحث",    icon: Search,     path: "search",  match: "/search" },
+  { labelEn: "Quran",  labelAr: "القرآن", icon: BookOpen,   path: "quran",   match: "/quran" },
+  { labelEn: "Hadith", labelAr: "الحديث", icon: ScrollText, path: "hadith",  match: "/hadith" },
+  { labelEn: "Profile", labelAr: "الملف", icon: User,       path: "profile", match: "/profile" },
 ] as const;
 
 interface BottomTabNavProps {

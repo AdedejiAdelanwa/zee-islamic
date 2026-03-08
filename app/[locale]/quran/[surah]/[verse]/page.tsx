@@ -7,10 +7,12 @@ import ShareActions from "@/components/verse/ShareActions";
 import TranslationSwitcher from "@/components/verse/TranslationSwitcher";
 import TafsirSourceSwitcher from "@/components/verse/TafsirSourceSwitcher";
 import TransliterationToggle from "@/components/verse/TransliterationToggle";
+import ShareFab from "@/components/verse/ShareFab";
 import { getAyah } from "@/lib/quran";
 import { getTafsir } from "@/lib/tafsir";
-import { TRANSLATIONS, getDefaultTranslation, getTranslationDirection } from "@/lib/translations";
-import { buildAlternates } from "@/lib/alternates";
+import { getDefaultTranslation, getTranslationDirection, TRANSLATIONS } from "@/lib/translations";
+import { buildAlternates, SITE_URL } from "@/lib/alternates";
+import { t, isRtl } from "@/lib/ui";
 
 const VALID_TAFSIR_SOURCES = ["ibn-kathir", "al-tabari"];
 
@@ -29,12 +31,12 @@ export async function generateMetadata({
   try {
     const ayah = await getAyah(Number(surah), Number(verse), translation);
     const surahName = ayah.arabic.surah?.englishName ?? `Surah ${surah}`;
-    const isAr = locale === "ar";
+    const rtl = isRtl(locale);
 
     return {
-      title: isAr
-        ? `${surahName} — الآية ${verse}`
-        : `${surahName} — Verse ${verse}`,
+      title: rtl
+        ? `${surahName} — ${t(locale, "verseLabel")} ${verse}`
+        : `${surahName} — ${t(locale, "verseLabel")} ${verse}`,
       description: ayah.translation.text?.slice(0, 160),
       alternates: buildAlternates(locale, `quran/${surah}/${verse}`),
       openGraph: {
@@ -66,7 +68,7 @@ export default async function VersePage({
 }: VersePageProps) {
   const { locale, surah, verse } = await params;
   const { translation = getDefaultTranslation(locale), tafsir: tafsirSource = "ibn-kathir" } = await searchParams;
-  const isAr = locale === "ar";
+  const rtl = isRtl(locale);
   const translationDir = getTranslationDirection(translation);
 
   const surahNum = Number(surah);
@@ -89,46 +91,45 @@ export default async function VersePage({
   const surahName = ayah.arabic.surah?.englishName ?? `Surah ${surahNum}`;
   const surahArabicName = ayah.arabic.surah?.name ?? "";
   const verseRef = `${surahNum}:${verseNum}`;
-  const currentUrl = `https://zee.yourdomain.com/${locale}/quran/${surahNum}/${verseNum}`;
+  const currentUrl = `${SITE_URL}/${locale}/quran/${surahNum}/${verseNum}`;
   const shareText = `${ayah.arabic.text}\n\n"${ayah.translation.text}"`;
 
   const translationLabel =
-    TRANSLATIONS.find((t) => t.identifier === translation)?.name ?? translation;
+    TRANSLATIONS.find((tr) => tr.identifier === translation)?.name ?? translation;
 
   const verseDetails = [
-    { label: isAr ? "السورة" : "Surah", value: surahNum },
-    { label: isAr ? "الآية" : "Verse", value: verseNum },
-    { label: isAr ? "الجزء" : "Juz", value: ayah.arabic.juz },
-    { label: isAr ? "الصفحة" : "Page", value: ayah.arabic.page },
+    { label: t(locale, "surahLabel"), value: surahNum },
+    { label: t(locale, "verseLabel"), value: verseNum },
+    { label: t(locale, "juz"), value: ayah.arabic.juz },
+    { label: t(locale, "page"), value: ayah.arabic.page },
   ];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6" dir={isAr ? "rtl" : "ltr"}>
+    <div className="mx-auto max-w-3xl px-4 py-6" dir={rtl ? "rtl" : "ltr"}>
       {/* Breadcrumb */}
       <Breadcrumb
         locale={locale}
         className="mb-3"
         items={[
-          { label: isAr ? "الرئيسية" : "Home", href: `/${locale}/` },
-          {
-            label: isAr ? "القرآن" : "Quran",
-            href: `/${locale}/quran`,
-          },
+          { label: t(locale, "home"), href: `/${locale}/` },
+          { label: t(locale, "quran"), href: `/${locale}/quran` },
           { label: surahName, href: `/${locale}/quran/${surahNum}` },
-          { label: isAr ? `الآية ${verseNum}` : `Verse ${verseNum}` },
+          { label: `${t(locale, "verseLabel")} ${verseNum}` },
         ]}
       />
 
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-(--color-foreground) md:text-3xl">
-          {isAr ? surahArabicName : surahName}
+          {rtl ? surahArabicName : surahName}
           <span className="ml-2 text-(--color-muted)">({verseRef})</span>
         </h1>
         <p className="mt-1 text-sm text-(--color-muted)">
-          {isAr
-            ? `${ayah.arabic.surah?.revelationType === "Meccan" ? "مكية" : "مدنية"} — ${ayah.arabic.surah?.numberOfAyahs} آية`
-            : `${ayah.arabic.surah?.revelationType} — ${ayah.arabic.surah?.numberOfAyahs} verses`}
+          {ayah.arabic.surah?.revelationType === "Meccan"
+            ? t(locale, "meccan")
+            : t(locale, "medinan")}
+          {" — "}
+          {ayah.arabic.surah?.numberOfAyahs} {t(locale, "verses")}
         </p>
       </div>
 
@@ -149,7 +150,7 @@ export default async function VersePage({
       {/* Translation switcher */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-(--color-foreground)">
-          {isAr ? "الترجمة" : "Translation"}
+          {t(locale, "translation")}
         </h2>
         <Suspense fallback={null}>
           <TranslationSwitcher
@@ -173,7 +174,7 @@ export default async function VersePage({
         {ayah.transliteration?.text && (
           <TransliterationToggle
             text={ayah.transliteration.text}
-            isAr={isAr}
+            isAr={rtl}
           />
         )}
       </div>
@@ -183,7 +184,7 @@ export default async function VersePage({
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-(--color-foreground)">
             <BookMarked size={16} className="text-(--color-primary)" />
-            {isAr ? "التفسير" : "Tafsir"}
+            {t(locale, "tafsir")}
           </h2>
           <Suspense fallback={null}>
             <TafsirSourceSwitcher currentSource={activeSource} locale={locale} />
@@ -217,9 +218,7 @@ export default async function VersePage({
           </div>
         ) : (
           <p className="text-sm text-(--color-muted)">
-            {isAr
-              ? "التفسير غير متاح لهذه الآية حالياً."
-              : "Tafsir not yet available for this verse."}
+            {t(locale, "tafsirUnavailable")}
           </p>
         )}
       </div>
@@ -239,13 +238,28 @@ export default async function VersePage({
         ))}
       </div>
 
-      {/* Share actions */}
-      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
+      {/* Share actions — desktop card */}
+      <div className="hidden rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 md:block">
         <h2 className="mb-4 text-sm font-semibold text-(--color-foreground)">
-          {isAr ? "مشاركة الآية" : "Share this verse"}
+          {t(locale, "shareVerse")}
         </h2>
-        <ShareActions text={shareText} url={currentUrl} locale={locale} />
+        <ShareActions
+          text={shareText}
+          url={currentUrl}
+          locale={locale}
+          ogUrl={`/${locale}/quran/${surahNum}/${verseNum}/og-image`}
+          downloadFilename={`quran-${surahNum}-${verseNum}.png`}
+        />
       </div>
+
+      {/* Share FAB — mobile only */}
+      <ShareFab
+        text={shareText}
+        url={currentUrl}
+        locale={locale}
+        ogUrl={`/${locale}/quran/${surahNum}/${verseNum}/og-image`}
+        downloadFilename={`quran-${surahNum}-${verseNum}.png`}
+      />
 
       {/* Navigation */}
       <div className="mt-6 flex items-center justify-between">
@@ -254,7 +268,7 @@ export default async function VersePage({
             href={`/${locale}/quran/${surahNum}/${verseNum - 1}`}
             className="flex items-center gap-2 rounded-full border border-(--color-border) px-4 py-2 text-sm font-medium transition-colors hover:border-(--color-primary) hover:text-(--color-primary)"
           >
-            {isAr ? "→" : "←"} {isAr ? "الآية السابقة" : "Previous"}
+            {rtl ? "→" : "←"} {t(locale, "previous")}
           </a>
         )}
         <div className="flex-1" />
@@ -263,7 +277,7 @@ export default async function VersePage({
             href={`/${locale}/quran/${surahNum}/${verseNum + 1}`}
             className="flex items-center gap-2 rounded-full border border-(--color-border) px-4 py-2 text-sm font-medium transition-colors hover:border-(--color-primary) hover:text-(--color-primary)"
           >
-            {isAr ? "الآية التالية" : "Next"} {isAr ? "←" : "→"}
+            {t(locale, "next")} {rtl ? "←" : "→"}
           </a>
         )}
       </div>

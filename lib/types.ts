@@ -1,5 +1,9 @@
 // Locale types
-export type Locale = "en" | "ar";
+export type Locale =
+  | "en" | "ar" | "ur" | "fa"
+  | "fr" | "de" | "tr" | "id" | "ru" | "es"
+  | "bn" | "ms" | "zh" | "bs" | "it" | "pt"
+  | "sv" | "nl" | "ja" | "ko" | "ha" | "sw";
 
 // Quran types
 export interface Ayah {

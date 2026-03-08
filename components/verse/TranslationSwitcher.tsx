@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { TRANSLATIONS, groupByLanguage, getDefaultTranslation } from "@/lib/translations";
+import { t, isRtl } from "@/lib/ui";
 
 interface TranslationSwitcherProps {
   currentTranslation?: string;
@@ -18,7 +19,7 @@ export default function TranslationSwitcher({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isAr = locale === "ar";
+  const rtl = isRtl(locale);
 
   const active = currentTranslation ?? getDefaultTranslation(locale);
 
@@ -29,9 +30,9 @@ export default function TranslationSwitcher({
   }
 
   return (
-    <div className="relative inline-block" dir={isAr ? "rtl" : "ltr"}>
+    <div className="relative inline-block" dir={rtl ? "rtl" : "ltr"}>
       <label className="sr-only">
-        {isAr ? "اختر الترجمة" : "Select translation"}
+        {t(locale, "selectTranslation")}
       </label>
       <div className="relative">
         <select

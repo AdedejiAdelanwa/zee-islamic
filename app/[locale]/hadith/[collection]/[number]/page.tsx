@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import HadithGradeBadge from "@/components/ui/HadithGradeBadge";
 import ShareActions from "@/components/verse/ShareActions";
+import ShareFab from "@/components/verse/ShareFab";
 import { getHadith, HADITH_COLLECTIONS } from "@/lib/hadith";
 import { truncate } from "@/lib/utils";
-import { buildAlternates } from "@/lib/alternates";
+import { buildAlternates, SITE_URL } from "@/lib/alternates";
 
 interface HadithPageProps {
   params: Promise<{ locale: string; collection: string; number: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: HadithPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: HadithPageProps): Promise<Metadata> {
   try {
     const { locale, collection, number } = await params;
     const isAr = locale === "ar";
@@ -30,6 +31,19 @@ export async function generateMetadata({
         : `${collectionName} — Hadith #${number}`,
       description: truncate(hadith.hadithEnglish, 160),
       alternates: buildAlternates(locale, `hadith/${collection}/${number}`),
+      openGraph: {
+        title: `${collectionName} — Hadith #${number}`,
+        description: truncate(hadith.hadithEnglish, 200),
+        images: [
+          {
+            url: `/${locale}/hadith/${collection}/${number}/og-image`,
+            width: 1200,
+            height: 630,
+            alt: `${collectionName} Hadith #${number}`,
+          },
+        ],
+      },
+      twitter: { card: "summary_large_image" },
     };
   } catch {
     return { title: "Hadith — ZEE" };
@@ -46,7 +60,13 @@ export default async function HadithPage({ params }: HadithPageProps) {
   const collectionInfo = HADITH_COLLECTIONS.find((c) => c.slug === collection);
   const collectionName = collectionInfo?.name ?? collection;
   const grade = hadith.grades?.[0]?.grade ?? collectionInfo?.grade ?? "Unknown";
-  const currentUrl = `https://zee.yourdomain.com/${locale}/hadith/${collection}/${number}`;
+
+  const currentNum = parseInt(number, 10);
+  const hadithCount = hadith.book?.hadithCount ?? 0;
+  const prevNum = currentNum > 1 ? currentNum - 1 : null;
+  const nextNum = hadithCount > 0 && currentNum < hadithCount ? currentNum + 1 : null;
+
+  const currentUrl = `${SITE_URL}/${locale}/hadith/${collection}/${number}`;
   const shareText = hadith.hadithEnglish?.slice(0, 300) ?? "";
 
   return (
@@ -57,11 +77,8 @@ export default async function HadithPage({ params }: HadithPageProps) {
         className="mb-6"
         items={[
           { label: isAr ? "الرئيسية" : "Home", href: `/${locale}/` },
-          {
-            label: isAr ? "الحديث" : "Hadith",
-            href: `/${locale}/search?type=hadith`,
-          },
-          { label: collectionName },
+          { label: isAr ? "الحديث النبوي" : "Hadith", href: `/${locale}/hadith` },
+          { label: collectionName, href: `/${locale}/hadith/${collection}` },
           { label: `#${number}` },
         ]}
       />
@@ -123,12 +140,54 @@ export default async function HadithPage({ params }: HadithPageProps) {
         </div>
       </div>
 
-      {/* Share */}
-      <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
+      {/* Share — desktop card */}
+      <div className="mb-6 hidden rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 md:block">
         <h2 className="mb-4 text-sm font-semibold text-(--color-foreground)">
           {isAr ? "مشاركة الحديث" : "Share this Hadith"}
         </h2>
-        <ShareActions text={shareText} url={currentUrl} locale={locale} />
+        <ShareActions
+          text={shareText}
+          url={currentUrl}
+          locale={locale}
+          ogUrl={`/${locale}/hadith/${collection}/${number}/og-image`}
+          downloadFilename={`hadith-${collection}-${number}.png`}
+        />
+      </div>
+
+      {/* Share FAB — mobile only */}
+      <ShareFab
+        text={shareText}
+        url={currentUrl}
+        locale={locale}
+        ogUrl={`/${locale}/hadith/${collection}/${number}/og-image`}
+        downloadFilename={`hadith-${collection}-${number}.png`}
+      />
+
+      {/* Prev / Next navigation */}
+      <div className="grid grid-cols-2 gap-3">
+        {prevNum ? (
+          <Link
+            href={`/${locale}/hadith/${collection}/${prevNum}`}
+            className="flex items-center gap-2 rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-3 text-sm font-medium text-(--color-foreground) transition-all hover:border-(--color-semantic-green) hover:text-(--color-semantic-green)"
+          >
+            {isAr ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            <span>{isAr ? `حديث #${prevNum}` : `Hadith #${prevNum}`}</span>
+          </Link>
+        ) : (
+          <div />
+        )}
+
+        {nextNum ? (
+          <Link
+            href={`/${locale}/hadith/${collection}/${nextNum}`}
+            className="flex items-center justify-end gap-2 rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-3 text-sm font-medium text-(--color-foreground) transition-all hover:border-(--color-semantic-green) hover:text-(--color-semantic-green)"
+          >
+            <span>{isAr ? `حديث #${nextNum}` : `Hadith #${nextNum}`}</span>
+            {isAr ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </Link>
+        ) : (
+          <div />
+        )}
       </div>
     </div>
   );

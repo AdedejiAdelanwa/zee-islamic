@@ -3,6 +3,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SURAH_LIST } from "@/lib/surah-list";
 import { buildAlternates } from "@/lib/alternates";
+import { t, isRtl } from "@/lib/ui";
 
 interface QuranPageProps {
   params: Promise<{ locale: string }>;
@@ -10,32 +11,29 @@ interface QuranPageProps {
 
 export async function generateMetadata({ params }: QuranPageProps): Promise<Metadata> {
   const { locale } = await params;
-  const isAr = locale === "ar";
   return {
-    title: isAr ? "القرآن الكريم — ZEE" : "The Holy Quran — ZEE",
-    description: isAr
-      ? "تصفّح سور القرآن الكريم الـ ١١٤"
-      : "Browse all 114 chapters of the Holy Quran",
+    title: `${t(locale, "quranFull")} — ZEE`,
+    description: t(locale, "quranSubtitle"),
     alternates: buildAlternates(locale, "quran"),
   };
 }
 
 export default async function QuranPage({ params }: QuranPageProps) {
   const { locale } = await params;
-  const isAr = locale === "ar";
+  const rtl = isRtl(locale);
 
   const meccanCount = SURAH_LIST.filter((s) => s.revelationType === "Meccan").length;
   const medinanCount = SURAH_LIST.length - meccanCount;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6" dir={isAr ? "rtl" : "ltr"}>
+    <div className="mx-auto max-w-6xl px-4 py-6" dir={rtl ? "rtl" : "ltr"}>
       {/* Breadcrumb */}
       <Breadcrumb
         locale={locale}
         className="mb-3"
         items={[
-          { label: isAr ? "الرئيسية" : "Home", href: `/${locale}/` },
-          { label: isAr ? "القرآن الكريم" : "The Holy Quran" },
+          { label: t(locale, "home"), href: `/${locale}/` },
+          { label: t(locale, "quranFull") },
         ]}
       />
 
@@ -43,23 +41,23 @@ export default async function QuranPage({ params }: QuranPageProps) {
       <div className="mb-6 rounded-2xl border border-(--color-border) bg-(--color-surface) px-6 py-4 text-center shadow-sm">
         <p className="arabic-text mb-1 text-4xl text-(--color-foreground)">القرآن الكريم</p>
         <h1 className="text-xl font-bold text-(--color-foreground)">
-          {isAr ? "القرآن الكريم" : "The Holy Quran"}
+          {t(locale, "quranFull")}
         </h1>
         <p className="mt-0.5 text-sm text-(--color-muted)">
-          {isAr ? "كلام الله المنزّل على سيدنا محمد ﷺ" : "The word of Allah revealed to Prophet Muhammad ﷺ"}
+          {t(locale, "quranSubtitle")}
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {isAr ? "١١٤ سورة" : "114 Surahs"}
+            {t(locale, "surahs")}
           </span>
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {isAr ? "٣٠ جزءًا" : "30 Juz"}
+            {t(locale, "juzCount")}
           </span>
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {isAr ? `${meccanCount} مكية` : `${meccanCount} Meccan`}
+            {meccanCount} {t(locale, "meccan")}
           </span>
           <span className="rounded-full border border-(--color-border) bg-(--color-background) px-3 py-1 text-xs font-medium text-(--color-muted)">
-            {isAr ? `${medinanCount} مدنية` : `${medinanCount} Medinan`}
+            {medinanCount} {t(locale, "medinan")}
           </span>
         </div>
       </div>
@@ -69,7 +67,7 @@ export default async function QuranPage({ params }: QuranPageProps) {
         {/* Sidebar — desktop only, sticky */}
         <aside className="hidden w-48 shrink-0 self-start sticky top-20 lg:block">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--color-muted)">
-            {isAr ? "السور" : "Chapters"}
+            {t(locale, "chapters")}
           </p>
           <div className="max-h-[calc(100vh-9rem)] overflow-y-auto rounded-xl border border-(--color-border) bg-(--color-surface)">
             {SURAH_LIST.map((s) => (
@@ -82,7 +80,7 @@ export default async function QuranPage({ params }: QuranPageProps) {
                   {s.number}
                 </span>
                 <span className="truncate text-xs text-(--color-muted)">
-                  {isAr ? s.arabic : s.english}
+                  {rtl ? s.arabic : s.english}
                 </span>
               </a>
             ))}
@@ -107,11 +105,8 @@ export default async function QuranPage({ params }: QuranPageProps) {
           {/* Surah cards grid */}
           <div className="grid gap-4 sm:grid-cols-2">
             {SURAH_LIST.map((s) => {
-              const revelationLabel = isAr
-                ? s.revelationType === "Meccan"
-                  ? "مكية"
-                  : "مدنية"
-                : s.revelationType;
+              const revelationLabel =
+                s.revelationType === "Meccan" ? t(locale, "meccan") : t(locale, "medinan");
 
               return (
                 <Link
@@ -130,7 +125,7 @@ export default async function QuranPage({ params }: QuranPageProps) {
                         {revelationLabel}
                       </span>
                       <span className="rounded-full border border-(--color-border) bg-(--color-background) px-2 py-0.5 text-xs text-(--color-muted)">
-                        {s.verses} {isAr ? "آية" : "verses"}
+                        {s.verses} {t(locale, "verses")}
                       </span>
                     </div>
                   </div>
@@ -150,9 +145,9 @@ export default async function QuranPage({ params }: QuranPageProps) {
 
                   {/* Footer */}
                   <div className="mt-3 flex items-center justify-between border-t border-(--color-border) pt-3 text-xs text-(--color-muted)">
-                    <span>{isAr ? `الجزء ${s.juz}` : `Juz ${s.juz}`}</span>
+                    <span>{t(locale, "juz")} {s.juz}</span>
                     <span className="font-medium text-(--color-primary) opacity-0 transition-opacity group-hover:opacity-100">
-                      {isAr ? "اقرأ ←" : "Read →"}
+                      {t(locale, "readArrow")}
                     </span>
                   </div>
                 </Link>

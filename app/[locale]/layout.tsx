@@ -6,7 +6,12 @@ import BottomTabNav from "@/components/layout/BottomTabNav";
 import { buildAlternates } from "@/lib/alternates";
 import type { Locale } from "@/lib/types";
 
-const SUPPORTED_LOCALES: Locale[] = ["en", "ar"];
+const SUPPORTED_LOCALES: Locale[] = [
+  "en", "ar", "ur", "fa",
+  "fr", "de", "tr", "id", "ru", "es",
+  "bn", "ms", "zh", "bs", "it", "pt",
+  "sv", "nl", "ja", "ko", "ha", "sw",
+];
 
 export async function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));
